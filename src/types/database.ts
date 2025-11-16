@@ -90,6 +90,7 @@ export interface Database {
           ai_summary: string | null
           status: 'PENDING_REVIEW' | 'REVIEWED' | 'SHORTLISTED' | 'REJECTED' | 'HIRED'
           notes: string | null
+          tags: Json | null
           created_at: string
           updated_at: string
         }
@@ -106,6 +107,7 @@ export interface Database {
           ai_summary?: string | null
           status?: 'PENDING_REVIEW' | 'REVIEWED' | 'SHORTLISTED' | 'REJECTED' | 'HIRED'
           notes?: string | null
+          tags?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -122,6 +124,7 @@ export interface Database {
           ai_summary?: string | null
           status?: 'PENDING_REVIEW' | 'REVIEWED' | 'SHORTLISTED' | 'REJECTED' | 'HIRED'
           notes?: string | null
+          tags?: Json | null
           created_at?: string
           updated_at?: string
         }

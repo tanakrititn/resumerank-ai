@@ -8,6 +8,7 @@ import CandidatesFunnelChart from '@/components/dashboard/candidates-funnel-char
 import CreditsUsageChart from '@/components/dashboard/credits-usage-chart'
 import TopJobsChart from '@/components/dashboard/top-jobs-chart'
 import ScoreDistributionChart from '@/components/dashboard/score-distribution-chart'
+import RealtimeRecentCandidates from '@/components/dashboard/realtime-recent-candidates'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -286,79 +287,8 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      {/* Recent Candidates */}
-      <Card className="border-2 shadow-sm">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-2xl">Recent Candidates</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Latest applications to your job postings
-              </p>
-            </div>
-            <Link href="/jobs">
-              <Button variant="outline" size="sm">
-                View All Jobs
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {!recentCandidates || recentCandidates.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary mb-4">
-                <Users className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <p className="text-lg font-medium mb-2">No candidates yet</p>
-              <p className="text-sm text-muted-foreground mb-4">
-                Create a job and start receiving applications!
-              </p>
-              <Link href="/jobs/new">
-                <Button className="gradient-primary">
-                  Create Your First Job
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {recentCandidates.map((candidate, index) => (
-                <div
-                  key={candidate.id}
-                  className="flex items-center justify-between p-4 rounded-lg border hover:border-primary/50 hover:shadow-md transition-all duration-200 animate-slide-up"
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-medium">
-                      {candidate.name[0].toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="font-medium">{candidate.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {(candidate.jobs as any)?.title}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    {candidate.ai_score !== null ? (
-                      <div>
-                        <p className="text-2xl font-bold text-primary">
-                          {candidate.ai_score}
-                        </p>
-                        <p className="text-xs text-muted-foreground">out of 100</p>
-                      </div>
-                    ) : (
-                      <Badge variant={candidate.status === 'PENDING_REVIEW' ? 'secondary' : 'outline'}>
-                        {candidate.status === 'PENDING_REVIEW' ? 'Analyzing...' : 'Not scored'}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Recent Candidates - Real-time */}
+      <RealtimeRecentCandidates initialCandidates={recentCandidates || []} userId={user.id} />
     </div>
   )
 }

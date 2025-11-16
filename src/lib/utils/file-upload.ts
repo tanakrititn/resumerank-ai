@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 
 export async function uploadResume(
   file: File,
@@ -35,6 +35,46 @@ export async function uploadResume(
     return { url: publicUrl }
   } catch (error) {
     console.error('Upload error:', error)
+    return { error: 'Failed to upload file' }
+  }
+}
+
+// Public upload function for unauthenticated users (uses service role)
+export async function uploadResumePublic(
+  file: File,
+  userId: string,
+  jobId: string,
+  candidateId: string
+): Promise<{ url?: string; error?: string }> {
+  try {
+    const supabase = createAdminClient()
+
+    // Create unique filename
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${userId}/${jobId}/${candidateId}.${fileExt}`
+
+    // Upload file with metadata using service role (bypasses RLS)
+    const { data, error } = await supabase.storage
+      .from('resumes')
+      .upload(fileName, file, {
+        upsert: true,
+        contentType: file.type,
+        cacheControl: '3600',
+      })
+
+    if (error) {
+      console.error('Public upload error:', error)
+      return { error: error.message }
+    }
+
+    // Get public URL
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('resumes').getPublicUrl(fileName)
+
+    return { url: publicUrl }
+  } catch (error) {
+    console.error('Public upload error:', error)
     return { error: 'Failed to upload file' }
   }
 }

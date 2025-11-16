@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { analyzeResumeFile } from '@/lib/ai/gemini'
 import { env } from '@/lib/env'
+import { broadcastCandidateChange } from '@/lib/utils/realtime-broadcast'
 
 export const runtime = 'nodejs'
 export const maxDuration = 300 // 5 minutes
@@ -162,17 +163,17 @@ ${job.location ? `Location: ${job.location}` : ''}
       )
     }
 
-    // Broadcast real-time update to all connected clients
+    // Broadcast real-time update to all connected clients (both job page and dashboard)
     const jobId = candidate.job_id
-    await supabase.channel(`job:${jobId}:candidates`).send({
-      type: 'broadcast',
-      event: 'candidate-change',
-      payload: {
+    try {
+      await broadcastCandidateChange(supabase, jobId, candidate.user_id, {
         action: 'update',
         candidateId,
         timestamp: new Date().toISOString(),
-      },
-    })
+      })
+    } catch (error) {
+      console.error('Failed to broadcast AI analysis completion:', error)
+    }
 
     // Update quota
     await supabase.rpc('increment_used_credits', { user_id: candidate.user_id })

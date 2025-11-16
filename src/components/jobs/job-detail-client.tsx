@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,10 +17,37 @@ import {
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { deleteJob } from '@/lib/actions/jobs'
-import { ArrowLeft, Edit, Trash2, MapPin, DollarSign, Plus, Calendar, FileText } from 'lucide-react'
+import { ArrowLeft, Edit, Trash2, MapPin, DollarSign, Plus, Calendar, FileText, Loader2 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import RealtimeCandidatesList from '@/components/candidates/realtime-candidates-list'
 import type { Database } from '@/types/database'
+
+// Load these components client-only to avoid hydration issues with Radix UI
+const ExportCandidatesButton = dynamic(
+  () => import('@/components/export-candidates-button'),
+  {
+    ssr: false,
+    loading: () => (
+      <Button variant="outline" size="lg" disabled>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        Loading...
+      </Button>
+    ),
+  }
+)
+
+const ShareJobLinkButton = dynamic(
+  () => import('@/components/jobs/share-job-link-button'),
+  {
+    ssr: false,
+    loading: () => (
+      <Button variant="secondary" size="lg" disabled>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        Loading...
+      </Button>
+    ),
+  }
+)
 
 type Job = Database['public']['Tables']['jobs']['Row']
 type Candidate = Database['public']['Tables']['candidates']['Row']
@@ -33,6 +61,7 @@ export default function JobDetailClient({
 }) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [candidates, setCandidates] = useState<Candidate[]>(initialCandidates)
   const router = useRouter()
 
   async function handleDelete() {
@@ -98,6 +127,19 @@ export default function JobDetailClient({
             Add Candidate
           </Button>
         </Link>
+        <ShareJobLinkButton
+          jobId={job.id}
+          jobTitle={job.title}
+          initialCandidatesCount={candidates.length}
+          variant="secondary"
+          size="lg"
+        />
+        <ExportCandidatesButton
+          candidates={candidates}
+          jobTitle={job.title}
+          variant="outline"
+          size="lg"
+        />
         <Link href={`/jobs/${job.id}/edit`}>
           <Button size="lg" variant="outline" className="border-2">
             <Edit className="mr-2 h-5 w-5" />
@@ -144,7 +186,11 @@ export default function JobDetailClient({
             </CardContent>
           </Card>
 
-          <RealtimeCandidatesList jobId={job.id} initialCandidates={initialCandidates} />
+          <RealtimeCandidatesList
+            jobId={job.id}
+            initialCandidates={initialCandidates}
+            onCandidatesChange={setCandidates}
+          />
         </div>
 
         {/* Sidebar */}
