@@ -23,7 +23,8 @@
       "Bash(xargs kill -9)",
       "Bash(node test-realtime-connection.js:*)",
       "Bash(psql:*)",
-      "Bash(git check-ignore:*)"
+      "Bash(git check-ignore:*)",
+      "Bash(npm uninstall:*)"
     ],
     "deny": [],
     "ask": []

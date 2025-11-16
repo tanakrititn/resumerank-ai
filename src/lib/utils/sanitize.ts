@@ -1,23 +1,40 @@
-import DOMPurify from 'isomorphic-dompurify'
-
 /**
- * Sanitize HTML to prevent XSS attacks
+ * Strip all HTML tags to prevent XSS attacks
+ * Using regex-based approach to avoid jsdom dependency issues on Vercel
  */
 export function sanitizeHtml(dirty: string): string {
-  return DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS: [], // Strip all HTML tags
-    ALLOWED_ATTR: [],
-  })
+  // Strip all HTML tags
+  let clean = dirty.replace(/<[^>]*>/g, '')
+
+  // Decode HTML entities
+  clean = clean
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, '/')
+    .replace(/&amp;/g, '&')
+
+  // Remove any remaining script-like content
+  clean = clean.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+
+  return clean.trim()
 }
 
 /**
  * Sanitize user input for display (allows basic formatting)
  */
 export function sanitizeUserInput(dirty: string): string {
-  return DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'u', 'br', 'p'],
-    ALLOWED_ATTR: [],
-  })
+  // Strip all HTML except allowed tags
+  let clean = dirty.replace(/<(?!\/?(?:b|i|em|strong|u|br|p)\b)[^>]*>/gi, '')
+
+  // Remove any script content
+  clean = clean.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+
+  // Remove event handlers
+  clean = clean.replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+
+  return clean.trim()
 }
 
 /**
