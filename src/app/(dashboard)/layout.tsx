@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/actions/auth'
 import DashboardNav from '@/components/dashboard/nav'
 import NotificationBanner from '@/components/notification-banner'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 export default async function DashboardLayout({
   children,
@@ -17,9 +18,11 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-gray-50">
       <DashboardNav user={user} />
-      <main className="container mx-auto py-8 px-4">
-        {children}
-      </main>
+      <ErrorBoundary>
+        <main className="container mx-auto py-8 px-4">
+          {children}
+        </main>
+      </ErrorBoundary>
       <NotificationBanner />
     </div>
   )

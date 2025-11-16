@@ -198,7 +198,7 @@ export default function AdminNav({ user }: { user: User }) {
         </div>
 
         {/* Mobile Navigation */}
-        <div className="lg:hidden pb-3 flex gap-2 overflow-x-auto">
+        <div className="lg:hidden pb-3 flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-transparent hover:scrollbar-thumb-purple-400">
           {navItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
@@ -209,8 +209,8 @@ export default function AdminNav({ user }: { user: User }) {
                   size="sm"
                   className={
                     isActive
-                      ? 'bg-gradient-to-r from-purple-600 to-purple-500 shadow-lg whitespace-nowrap'
-                      : 'hover:bg-purple-50 whitespace-nowrap'
+                      ? 'bg-gradient-to-r from-purple-600 to-purple-500 shadow-lg whitespace-nowrap focus-visible:ring-2 focus-visible:ring-purple-600 focus-visible:ring-offset-2'
+                      : 'hover:bg-purple-50 whitespace-nowrap focus-visible:bg-purple-50 focus-visible:scale-105'
                   }
                 >
                   <Icon className="mr-2 h-4 w-4" />

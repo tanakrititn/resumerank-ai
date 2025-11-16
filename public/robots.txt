@@ -1,0 +1,18 @@
+# *
+User-agent: *
+Allow: /
+
+# Block sensitive routes
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /private/
+
+# Allow public pages
+Allow: /
+Allow: /login
+Allow: /signup
+
+# Sitemap
+Sitemap: https://resumerank.ai/sitemap.xml

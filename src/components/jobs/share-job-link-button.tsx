@@ -91,7 +91,7 @@ export default function ShareJobLinkButton({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant={variant} size={size} className="gap-2">
+        <Button variant={variant} size={size} className="gap-2 w-full">
           <Share2 className="h-4 w-4" />
           {showText && <span>Share</span>}
         </Button>

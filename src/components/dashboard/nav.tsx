@@ -116,14 +116,14 @@ export default function DashboardNav({ user }: { user: User }) {
                       size="sm"
                       className={
                         isActive
-                          ? 'relative bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300'
-                          : 'hover:bg-secondary/80 hover:scale-105 transition-all duration-200'
+                          ? 'relative overflow-visible bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
+                          : 'hover:bg-secondary/80 hover:scale-105 transition-all duration-200 focus-visible:bg-secondary/80 focus-visible:scale-105'
                       }
                     >
                       <Icon className="mr-2 h-4 w-4" />
                       {item.label}
                       {isActive && (
-                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-white rounded-t-full" />
+                        <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-8 h-1 bg-white rounded-t-full shadow-sm" />
                       )}
                     </Button>
                   </Link>
@@ -204,7 +204,7 @@ export default function DashboardNav({ user }: { user: User }) {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <SheetContent side="right" className="w-[85vw] max-w-[400px] sm:w-[400px]">
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-3">
                     <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">

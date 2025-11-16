@@ -1,15 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Users, Briefcase, FileText, TrendingUp, Activity as ActivityIcon, ArrowUpRight, ArrowDownRight, LineChart, BarChart3 } from 'lucide-react'
-import JobsStatusChart from '@/components/admin/jobs-status-chart'
-import CandidatesStatusChart from '@/components/admin/candidates-status-chart'
-import UserGrowthChart from '@/components/admin/user-growth-chart'
-import ActivityTimelineChart from '@/components/admin/activity-timeline-chart'
-import ResourceUsageChart from '@/components/admin/resource-usage-chart'
+import { Activity as ActivityIcon } from 'lucide-react'
+import RealtimeAdminStats from '@/components/admin/realtime-admin-stats'
+import RealtimeAdminCharts from '@/components/admin/realtime-admin-charts'
 import { Badge } from '@/components/ui/badge'
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient()
+
+  // Calculate date 7 days ago for trend comparison
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+  const sevenDaysAgoISO = sevenDaysAgo.toISOString()
 
   // Fetch all statistics (admin can see everything)
   const [
@@ -21,6 +23,10 @@ export default async function AdminDashboardPage() {
     { data: candidatesData },
     { data: profiles },
     { data: allActivities },
+    { count: usersCount7DaysAgo },
+    { count: jobsCount7DaysAgo },
+    { count: candidatesCount7DaysAgo },
+    { data: candidatesData7DaysAgo },
   ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }),
     supabase.from('jobs').select('*', { count: 'exact', head: true }),
@@ -38,6 +44,11 @@ export default async function AdminDashboardPage() {
       .select('created_at, action')
       .order('created_at', { ascending: false })
       .limit(100),
+    // Data from 7 days ago for trend calculation
+    supabase.from('profiles').select('*', { count: 'exact', head: true }).lte('created_at', sevenDaysAgoISO),
+    supabase.from('jobs').select('*', { count: 'exact', head: true }).lte('created_at', sevenDaysAgoISO),
+    supabase.from('candidates').select('*', { count: 'exact', head: true }).lte('created_at', sevenDaysAgoISO),
+    supabase.from('candidates').select('ai_score').not('ai_score', 'is', null).lte('created_at', sevenDaysAgoISO),
   ])
 
   // Process jobs data for chart
@@ -127,52 +138,36 @@ export default async function AdminDashboardPage() {
     .slice(0, 5)
     .map(({ name, jobs, candidates, analyses }) => ({ name, jobs, candidates, analyses }))
 
-  const stats = [
-    {
-      title: 'Total Users',
-      value: usersCount || 0,
-      icon: Users,
-      description: 'Registered recruiters',
-      trend: '+12%',
-      trendUp: true,
-      gradient: 'from-blue-500 to-cyan-500',
-      iconBg: 'bg-blue-500/10',
-      iconColor: 'text-blue-600',
-    },
-    {
-      title: 'Total Jobs',
-      value: jobsCount || 0,
-      icon: Briefcase,
-      description: 'Job postings',
-      trend: '+8%',
-      trendUp: true,
-      gradient: 'from-purple-500 to-pink-500',
-      iconBg: 'bg-purple-500/10',
-      iconColor: 'text-purple-600',
-    },
-    {
-      title: 'Total Candidates',
-      value: candidatesCount || 0,
-      icon: FileText,
-      description: 'Applications received',
-      trend: '+23%',
-      trendUp: true,
-      gradient: 'from-green-500 to-emerald-500',
-      iconBg: 'bg-green-500/10',
-      iconColor: 'text-green-600',
-    },
-    {
-      title: 'Avg. Score',
-      value: '78',
-      icon: TrendingUp,
-      description: 'AI analysis average',
-      trend: '+5%',
-      trendUp: true,
-      gradient: 'from-orange-500 to-red-500',
-      iconBg: 'bg-orange-500/10',
-      iconColor: 'text-orange-600',
-    },
-  ]
+  // Calculate average score
+  const candidatesWithScores = candidatesData?.filter((c) => c.ai_score !== null) || []
+  const avgScore = candidatesWithScores.length > 0
+    ? Math.round(candidatesWithScores.reduce((sum, c) => sum + (c.ai_score || 0), 0) / candidatesWithScores.length)
+    : 0
+
+  // Calculate average score from 7 days ago
+  const avgScore7DaysAgo = candidatesData7DaysAgo && candidatesData7DaysAgo.length > 0
+    ? Math.round(candidatesData7DaysAgo.reduce((sum: number, c: any) => sum + (c.ai_score || 0), 0) / candidatesData7DaysAgo.length)
+    : 0
+
+  // Helper function to calculate percentage change
+  const calculateTrend = (current: number, previous: number): { trend: string; trendUp: boolean } => {
+    if (previous === 0) {
+      // If no previous data, show positive trend if current > 0
+      return { trend: current > 0 ? '+100%' : '0%', trendUp: current > 0 }
+    }
+    const change = ((current - previous) / previous) * 100
+    const isPositive = change >= 0
+    return {
+      trend: `${isPositive ? '+' : ''}${Math.round(change)}%`,
+      trendUp: isPositive,
+    }
+  }
+
+  // Calculate trends
+  const usersTrend = calculateTrend(usersCount || 0, usersCount7DaysAgo || 0)
+  const jobsTrend = calculateTrend(jobsCount || 0, jobsCount7DaysAgo || 0)
+  const candidatesTrend = calculateTrend(candidatesCount || 0, candidatesCount7DaysAgo || 0)
+  const scoreTrend = calculateTrend(avgScore, avgScore7DaysAgo)
 
   return (
     <div className="space-y-8 p-8 bg-gradient-to-br from-purple-50/30 via-white to-blue-50/30 min-h-screen">
@@ -188,150 +183,34 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon
-          return (
-            <Card
-              key={stat.title}
-              className="relative overflow-hidden border-2 hover:border-purple-200 transition-all duration-300 hover:shadow-xl hover:shadow-purple-100 hover:-translate-y-1 group bg-white/80 backdrop-blur-sm"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.title}
-                </CardTitle>
-                <div className={`p-3 rounded-xl ${stat.iconBg} group-hover:scale-110 transition-transform duration-300`}>
-                  <Icon className={`h-5 w-5 ${stat.iconColor}`} />
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-baseline justify-between">
-                  <div className="text-3xl font-bold bg-gradient-to-br from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                    {stat.value}
-                  </div>
-                  <div className={`flex items-center gap-1 text-sm font-semibold ${
-                    stat.trendUp ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {stat.trendUp ? (
-                      <ArrowUpRight className="h-4 w-4" />
-                    ) : (
-                      <ArrowDownRight className="h-4 w-4" />
-                    )}
-                    {stat.trend}
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {stat.description}
-                </p>
-              </CardContent>
-            </Card>
-          )
-        })}
-      </div>
+      {/* Stats Grid - Real-time */}
+      <RealtimeAdminStats
+        initialStats={{
+          usersCount: usersCount || 0,
+          jobsCount: jobsCount || 0,
+          candidatesCount: candidatesCount || 0,
+          avgScore,
+          usersTrend: usersTrend.trend,
+          usersTrendUp: usersTrend.trendUp,
+          jobsTrend: jobsTrend.trend,
+          jobsTrendUp: jobsTrend.trendUp,
+          candidatesTrend: candidatesTrend.trend,
+          candidatesTrendUp: candidatesTrend.trendUp,
+          scoreTrend: scoreTrend.trend,
+          scoreTrendUp: scoreTrend.trendUp,
+        }}
+      />
 
-      {/* Charts Section */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="border-2 hover:border-purple-200 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  Jobs by Status
-                </CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">Distribution of job postings</p>
-              </div>
-              <div className="p-3 rounded-xl bg-purple-500/10">
-                <Briefcase className="h-5 w-5 text-purple-600" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <JobsStatusChart data={jobsChartData} />
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 hover:border-blue-200 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                  Candidates by Status
-                </CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">Application status overview</p>
-              </div>
-              <div className="p-3 rounded-xl bg-blue-500/10">
-                <FileText className="h-5 w-5 text-blue-600" />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <CandidatesStatusChart data={candidatesChartData} />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Advanced Analytics Section */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="border-2 hover:border-purple-200 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-purple-50">
-                <LineChart className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <CardTitle className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  User Growth
-                </CardTitle>
-                <p className="text-xs text-muted-foreground">Last 14 days</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <UserGrowthChart data={userGrowthChartData} />
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 hover:border-blue-200 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-blue-50">
-                <LineChart className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <CardTitle className="text-lg font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                  Activity Timeline
-                </CardTitle>
-                <p className="text-xs text-muted-foreground">System activity trends</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <ActivityTimelineChart data={activityChartData} />
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 hover:border-green-200 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-green-50">
-                <BarChart3 className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <CardTitle className="text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                  Resource Usage
-                </CardTitle>
-                <p className="text-xs text-muted-foreground">Top 5 active users</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <ResourceUsageChart data={resourceChartData} />
-          </CardContent>
-        </Card>
-      </div>
+      {/* Charts Section - Real-time */}
+      <RealtimeAdminCharts
+        initialData={{
+          jobsChartData,
+          candidatesChartData,
+          userGrowthChartData,
+          activityChartData,
+          resourceChartData,
+        }}
+      />
 
       {/* Recent Activity */}
       <Card className="border-2 hover:border-purple-200 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">

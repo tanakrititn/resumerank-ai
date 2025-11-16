@@ -26,9 +26,13 @@ export async function broadcastCandidateChange(
     try {
       const channel = supabase.channel(channelName)
 
-      // Subscribe and wait for confirmation
+      // Subscribe and wait for confirmation with longer timeout
       await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('Subscription timeout')), 3000)
+        const timeout = setTimeout(() => {
+          // Don't reject on timeout, just resolve and try to send anyway
+          console.warn(`Subscription timeout for ${channelName}, attempting broadcast anyway`)
+          resolve()
+        }, 5000) // Increased to 5 seconds
 
         channel.subscribe((status) => {
           if (status === 'SUBSCRIBED') {
@@ -36,20 +40,30 @@ export async function broadcastCandidateChange(
             resolve()
           } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
             clearTimeout(timeout)
-            reject(new Error(`Subscription failed: ${status}`))
+            // Still attempt to send even if subscription fails
+            console.warn(`Subscription status ${status} for ${channelName}, attempting broadcast anyway`)
+            resolve()
           }
         })
       })
 
-      // Send broadcast
-      await channel.send({
-        type: 'broadcast',
-        event: 'candidate-change',
-        payload,
-      })
+      // Send broadcast (try even if subscription wasn't confirmed)
+      try {
+        await channel.send({
+          type: 'broadcast',
+          event: 'candidate-change',
+          payload,
+        })
+      } catch (sendError) {
+        console.error(`Failed to send broadcast to ${channelName}:`, sendError)
+      }
 
       // Clean up
-      await supabase.removeChannel(channel)
+      try {
+        await supabase.removeChannel(channel)
+      } catch (cleanupError) {
+        console.error(`Failed to remove channel ${channelName}:`, cleanupError)
+      }
     } catch (error) {
       console.error(`Failed to broadcast to ${channelName}:`, error)
     }

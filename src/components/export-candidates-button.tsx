@@ -72,16 +72,16 @@ export default function ExportCandidatesButton({
           variant={variant}
           size={size}
           disabled={isExporting || candidates.length === 0}
-          className="gap-2"
+          className="gap-2 w-full"
         >
           {isExporting ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-full animate-spin" />
               {showText && <span>Exporting...</span>}
             </>
           ) : (
             <>
-              <Download className="h-4 w-4" />
+              <Download className="h-4 w-full" />
               {showText && <span>Export</span>}
             </>
           )}

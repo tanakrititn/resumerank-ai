@@ -9,6 +9,8 @@ import CreditsUsageChart from '@/components/dashboard/credits-usage-chart'
 import TopJobsChart from '@/components/dashboard/top-jobs-chart'
 import ScoreDistributionChart from '@/components/dashboard/score-distribution-chart'
 import RealtimeRecentCandidates from '@/components/dashboard/realtime-recent-candidates'
+import RealtimeDashboardStats from '@/components/dashboard/realtime-dashboard-stats'
+import RealtimeDashboardCharts from '@/components/dashboard/realtime-dashboard-charts'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -98,7 +100,7 @@ export default async function DashboardPage() {
   // Process data for charts
   // 1. Credits usage over time (from activity log)
   const creditsData = activities
-    ?.filter((a) => a.action === 'AI_ANALYSIS')
+    ?.filter((a) => a.action === 'AI_ANALYSIS_COMPLETED')
     .reduce((acc: { [key: string]: number }, activity) => {
       const date = new Date(activity.created_at).toLocaleDateString('en-US', {
         month: 'short',
@@ -108,26 +110,39 @@ export default async function DashboardPage() {
       return acc
     }, {})
 
-  const creditsChartData = Object.entries(creditsData || {})
+  let creditsChartData = Object.entries(creditsData || {})
     .map(([date, credits]) => ({ date, credits: credits as number }))
     .slice(-7) // Last 7 days
 
-  // 2. Candidates funnel by status
-  const statusCounts = {
-    'Applied': allCandidates?.filter((c) => c.status === 'PENDING_REVIEW').length || 0,
-    'Reviewing': allCandidates?.filter((c) => c.status === 'REVIEWING').length || 0,
-    'Shortlisted': allCandidates?.filter((c) => c.status === 'SHORTLISTED').length || 0,
-    'Interviewing': allCandidates?.filter((c) => c.status === 'INTERVIEWING').length || 0,
-    'Offer': allCandidates?.filter((c) => c.status === 'OFFER').length || 0,
+  // If no data, generate last 7 days with 0 usage
+  if (creditsChartData.length === 0) {
+    creditsChartData = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date()
+      date.setDate(date.getDate() - (6 - i))
+      return {
+        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        credits: 0
+      }
+    })
   }
 
+  // 2. Candidates funnel by status
+  const statusCounts = {
+    'Pending Review': allCandidates?.filter((c) => c.status === 'PENDING_REVIEW').length || 0,
+    'Reviewed': allCandidates?.filter((c) => c.status === 'REVIEWED').length || 0,
+    'Shortlisted': allCandidates?.filter((c) => c.status === 'SHORTLISTED').length || 0,
+    'Rejected': allCandidates?.filter((c) => c.status === 'REJECTED').length || 0,
+    'Hired': allCandidates?.filter((c) => c.status === 'HIRED').length || 0,
+  }
+
+  // Always show all statuses to display funnel structure (even with 0 counts)
   const funnelChartData = [
-    { status: 'Applied', count: statusCounts['Applied'], color: '#3b82f6' },
-    { status: 'Reviewing', count: statusCounts['Reviewing'], color: '#8b5cf6' },
-    { status: 'Shortlisted', count: statusCounts['Shortlisted'], color: '#ec4899' },
-    { status: 'Interviewing', count: statusCounts['Interviewing'], color: '#f59e0b' },
-    { status: 'Offer', count: statusCounts['Offer'], color: '#10b981' },
-  ].filter((item) => item.count > 0)
+    { status: 'Pending Review', count: statusCounts['Pending Review'], color: '#f59e0b' },
+    { status: 'Reviewed', count: statusCounts['Reviewed'], color: '#3b82f6' },
+    { status: 'Shortlisted', count: statusCounts['Shortlisted'], color: '#8b5cf6' },
+    { status: 'Rejected', count: statusCounts['Rejected'], color: '#ef4444' },
+    { status: 'Hired', count: statusCounts['Hired'], color: '#10b981' },
+  ]
 
   // 3. Top jobs by candidate count
   const jobCandidateCounts = jobs?.map((job) => ({
@@ -174,118 +189,38 @@ export default async function DashboardPage() {
           <Link href="/jobs/new">
             <Button
               variant="secondary"
-              className="bg-white text-primary hover:bg-white/90 shadow-md"
+              size="lg"
+              className="bg-white text-primary hover:bg-white/90 shadow-md focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
             >
               Create New Job
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
         </div>
-        <div className="absolute -right-8 -bottom-8 h-40 w-40 rounded-full bg-white/10 blur-3xl"></div>
-        <div className="absolute -left-8 -top-8 h-40 w-40 rounded-full bg-white/10 blur-3xl"></div>
+        <div className="absolute -right-8 -bottom-8 h-40 w-40 rounded-full bg-white/10 blur-3xl pointer-events-none"></div>
+        <div className="absolute -left-8 -top-8 h-40 w-40 rounded-full bg-white/10 blur-3xl pointer-events-none"></div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon
-          return (
-            <Card
-              key={stat.title}
-              className="border-2 hover:border-primary/50 hover:shadow-lg transition-all duration-300 animate-scale-in overflow-hidden"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.title}
-                </CardTitle>
-                <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                  <Icon className={`h-5 w-5 ${stat.color}`} />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className={`text-3xl font-bold ${stat.color}`}>
-                  {stat.value}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {stat.description}
-                </p>
-              </CardContent>
-            </Card>
-          )
-        })}
-      </div>
+      {/* Stats Grid - Real-time */}
+      <RealtimeDashboardStats
+        userId={user.id}
+        initialStats={{
+          jobsCount: jobsCount || 0,
+          candidatesCount: candidatesCount || 0,
+          aiCreditsRemaining: (quota?.ai_credits || 0) - (quota?.used_credits || 0),
+          aiCreditsTotal: quota?.ai_credits || 0,
+          pendingReviewCount: recentCandidates?.filter((c) => c.status === 'PENDING_REVIEW').length || 0,
+        }}
+      />
 
-      {/* Analytics Charts */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="border-2 shadow-sm">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-purple-50">
-                <LineChart className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">AI Credits Usage</CardTitle>
-                <p className="text-sm text-muted-foreground">Last 7 days activity</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <CreditsUsageChart data={creditsChartData} />
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 shadow-sm">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-blue-50">
-                <BarChart3 className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">Candidate Pipeline</CardTitle>
-                <p className="text-sm text-muted-foreground">Candidates by status</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <CandidatesFunnelChart data={funnelChartData} />
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 shadow-sm">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-green-50">
-                <BarChart3 className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">Top Performing Jobs</CardTitle>
-                <p className="text-sm text-muted-foreground">By candidate count</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <TopJobsChart data={jobCandidateCounts} />
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 shadow-sm">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-orange-50">
-                <PieChart className="h-5 w-5 text-orange-600" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">Score Distribution</CardTitle>
-                <p className="text-sm text-muted-foreground">Candidate quality overview</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <ScoreDistributionChart data={scoreChartData} />
-          </CardContent>
-        </Card>
-      </div>
+      {/* Analytics Charts - Real-time */}
+      <RealtimeDashboardCharts
+        userId={user.id}
+        initialCreditsData={creditsChartData}
+        initialFunnelData={funnelChartData}
+        initialTopJobsData={jobCandidateCounts}
+        initialScoreData={scoreChartData}
+      />
 
       {/* Recent Candidates - Real-time */}
       <RealtimeRecentCandidates initialCandidates={recentCandidates || []} userId={user.id} />

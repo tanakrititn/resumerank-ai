@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { Loader2, Upload, FileText, CheckCircle2, Send } from 'lucide-react'
+import { Loader2, FileText, CheckCircle2, Send } from 'lucide-react'
 import type { Database } from '@/types/database'
 import {
   Dialog,
@@ -146,17 +146,17 @@ export default function PublicJobApplicationForm({ job }: PublicJobApplicationFo
 
   return (
     <>
-      <Card className="border-2 shadow-lg bg-white/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50 border-b">
-          <CardTitle className="flex items-center gap-2 text-2xl">
+      <Card className="border-2 shadow-lg overflow-hidden bg-white p-0">
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 border-b p-6 space-y-1.5">
+          <div className="flex items-center gap-2 text-2xl font-semibold leading-none tracking-tight">
             <Send className="h-6 w-6 text-purple-600" />
             Submit Your Application
-          </CardTitle>
-          <CardDescription className="text-base">
+          </div>
+          <p className="text-base text-muted-foreground">
             Fill in your details and upload your resume. Our AI will analyze your application automatically.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-6">
+          </p>
+        </div>
+        <CardContent className="pt-6 bg-white">
           <form onSubmit={onSubmit} className="space-y-6">
             <input type="hidden" name="jobId" value={job.id} />
 
@@ -221,7 +221,7 @@ export default function PublicJobApplicationForm({ job }: PublicJobApplicationFo
                   onChange={handleFileChange}
                   required
                   disabled={isSubmitting}
-                  className="h-11 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-purple-500 file:to-blue-500 file:text-white hover:file:from-purple-600 hover:file:to-blue-600 cursor-pointer"
+                  className="h-12 pt-[0.3rem] file:mr-4 file:h-9 file:leading-9 file:py-0 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-purple-500 file:to-blue-500 file:text-white hover:file:from-purple-600 hover:file:to-blue-600 cursor-pointer"
                 />
               </div>
               {resumeFile && (
@@ -257,7 +257,7 @@ export default function PublicJobApplicationForm({ job }: PublicJobApplicationFo
               </Button>
             </div>
 
-            <p className="text-xs text-center text-muted-foreground">
+            <p className="text-xs text-center text-muted-foreground pb-5">
               By submitting this application, you agree that your resume will be analyzed by our AI system.
             </p>
           </form>

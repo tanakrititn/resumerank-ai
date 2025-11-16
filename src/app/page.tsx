@@ -16,20 +16,20 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Navigation */}
-      <nav className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
+      <nav className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Sparkles className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold gradient-text">
+            <span className="text-lg sm:text-xl font-bold gradient-text">
               ResumeRank AI
             </span>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/login">
-              <Button variant="ghost">Sign In</Button>
+              <Button variant="ghost" size="sm" className="text-sm sm:text-base sm:size-default">Sign In</Button>
             </Link>
             <Link href="/signup">
-              <Button className="gradient-primary">Get Started</Button>
+              <Button size="sm" className="gradient-primary text-sm sm:text-base sm:size-default">Get Started</Button>
             </Link>
           </div>
         </div>

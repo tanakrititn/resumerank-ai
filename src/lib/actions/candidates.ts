@@ -6,8 +6,11 @@ import { createCandidateSchema, updateCandidateSchema } from '@/lib/validations/
 import { uploadResume, deleteResume } from '@/lib/utils/file-upload'
 import { env } from '@/lib/env'
 import type { UpdateCandidateInput } from '@/lib/validations/candidate'
+import { rateLimitFileUpload } from '@/lib/rate-limit'
+import { logger } from '@/lib/logger'
 
 export async function createCandidate(jobId: string, formData: FormData) {
+  let userId: string | undefined
   try {
     const supabase = await createClient()
 
@@ -17,6 +20,14 @@ export async function createCandidate(jobId: string, formData: FormData) {
 
     if (!user) {
       return { error: 'Unauthorized' }
+    }
+
+    userId = user.id
+
+    // Rate limit file uploads
+    const { success } = await rateLimitFileUpload(user.id)
+    if (!success) {
+      return { error: 'Too many uploads. Please wait a moment and try again.' }
     }
 
     // Verify job ownership
@@ -66,7 +77,11 @@ export async function createCandidate(jobId: string, formData: FormData) {
       .single()
 
     if (insertError || !candidate) {
-      console.error('Insert error:', insertError)
+      logger.error('Failed to insert candidate', {
+        error: insertError?.message,
+        jobId,
+        userId: user.id,
+      })
       return { error: 'Failed to create candidate' }
     }
 
@@ -93,7 +108,11 @@ export async function createCandidate(jobId: string, formData: FormData) {
       .eq('id', candidate.id)
 
     if (updateError) {
-      console.error('Update error:', updateError)
+      logger.error('Failed to update candidate with resume URL', {
+        error: updateError.message,
+        candidateId: candidate.id,
+        userId: user.id,
+      })
       // Clean up
       await deleteResume(url)
       await supabase.from('candidates').delete().eq('id', candidate.id)
@@ -129,7 +148,11 @@ export async function createCandidate(jobId: string, formData: FormData) {
         },
       })
     } catch (error) {
-      console.error('Failed to broadcast real-time update:', error)
+      logger.warn('Failed to broadcast real-time update', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        candidateId: candidate.id,
+        jobId,
+      })
     }
 
     // Trigger AI analysis asynchronously
@@ -146,16 +169,33 @@ export async function createCandidate(jobId: string, formData: FormData) {
         },
         body: JSON.stringify({ candidateId: candidate.id }),
       }).catch((error) => {
-        console.error('Failed to trigger AI analysis:', error)
+        logger.warn('Failed to trigger AI analysis (fetch)', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          candidateId: candidate.id,
+        })
       })
     } catch (error) {
-      console.error('Failed to trigger AI analysis:', error)
+      logger.warn('Failed to trigger AI analysis (setup)', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        candidateId: candidate.id,
+      })
     }
+
+    logger.info('Candidate created successfully', {
+      candidateId: candidate.id,
+      jobId,
+      userId: user.id,
+      candidateName: candidate.name,
+    })
 
     revalidatePath(`/jobs/${jobId}`)
     return { success: true, data: candidate }
   } catch (error) {
-    console.error('Create candidate error:', error)
+    logger.error('Failed to create candidate', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      jobId,
+      userId,
+    })
     return { error: 'An unexpected error occurred' }
   }
 }
@@ -164,6 +204,7 @@ export async function updateCandidate(
   candidateId: string,
   data: UpdateCandidateInput
 ) {
+  let userId: string | undefined
   try {
     const validated = updateCandidateSchema.parse(data)
     const supabase = await createClient()
@@ -175,6 +216,8 @@ export async function updateCandidate(
     if (!user) {
       return { error: 'Unauthorized' }
     }
+
+    userId = user.id
 
     // Verify ownership
     const { data: existingCandidate } = await supabase
@@ -229,18 +272,33 @@ export async function updateCandidate(
           },
         })
     } catch (error) {
-      console.error('Failed to broadcast real-time update:', error)
+      logger.warn('Failed to broadcast real-time update', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        candidateId: candidate.id,
+        jobId: existingCandidate.job_id,
+      })
     }
+
+    logger.info('Candidate updated successfully', {
+      candidateId: candidate.id,
+      jobId: existingCandidate.job_id,
+      userId: user.id,
+    })
 
     revalidatePath(`/jobs/${existingCandidate.job_id}`)
     return { success: true, data: candidate }
   } catch (error) {
-    console.error('Update candidate error:', error)
+    logger.error('Failed to update candidate', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      candidateId,
+      userId,
+    })
     return { error: 'An unexpected error occurred' }
   }
 }
 
 export async function deleteCandidate(candidateId: string) {
+  let userId: string | undefined
   try {
     const supabase = await createClient()
 
@@ -251,6 +309,8 @@ export async function deleteCandidate(candidateId: string) {
     if (!user) {
       return { error: 'Unauthorized' }
     }
+
+    userId = user.id
 
     // Get candidate info
     const { data: existingCandidate } = await supabase
@@ -309,13 +369,28 @@ export async function deleteCandidate(candidateId: string) {
           },
         })
     } catch (error) {
-      console.error('Failed to broadcast real-time update:', error)
+      logger.warn('Failed to broadcast real-time update', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        candidateId,
+        jobId: existingCandidate.job_id,
+      })
     }
+
+    logger.info('Candidate deleted successfully', {
+      candidateId,
+      jobId: existingCandidate.job_id,
+      userId: user.id,
+      candidateName: existingCandidate.name,
+    })
 
     revalidatePath(`/jobs/${existingCandidate.job_id}`)
     return { success: true }
   } catch (error) {
-    console.error('Delete candidate error:', error)
+    logger.error('Failed to delete candidate', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      candidateId,
+      userId,
+    })
     return { error: 'An unexpected error occurred' }
   }
 }

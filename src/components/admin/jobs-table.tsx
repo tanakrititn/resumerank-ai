@@ -212,8 +212,9 @@ export default function AdminJobsTable({ jobs }: { jobs: Job[] }) {
               </TableRow>
             ) : (
               paginatedJobs.map((job) => {
-                const candidatesCount = Array.isArray(job.candidates)
-                  ? job.candidates.length
+                // Get candidates count from Supabase count query
+                const candidatesCount = Array.isArray(job.candidates) && job.candidates.length > 0
+                  ? (job.candidates[0] as any).count || 0
                   : 0
 
                 return (

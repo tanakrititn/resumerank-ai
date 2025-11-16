@@ -37,9 +37,10 @@ export default function SignUpPage() {
       })
     } else {
       toast.success('Success', {
-        description: 'Account created successfully!',
+        description: 'Account created! Please check your email to verify your account.',
       })
-      router.push('/dashboard')
+      // Redirect to verify email page with email parameter
+      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
     }
   }
 

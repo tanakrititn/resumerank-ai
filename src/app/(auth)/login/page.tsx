@@ -34,6 +34,13 @@ function LoginForm() {
       toast.error('Error', {
         description: result.error,
       })
+
+      // If email needs verification, redirect to verify-email page
+      if ('needsVerification' in result && result.needsVerification) {
+        setTimeout(() => {
+          router.push(`/verify-email?email=${encodeURIComponent(result.email || data.email)}`)
+        }, 2000)
+      }
     } else {
       toast.success('Success', {
         description: 'Logged in successfully!',
@@ -74,7 +81,15 @@ function LoginForm() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-primary hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <Input
                 id="password"
                 name="password"

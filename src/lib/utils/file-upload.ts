@@ -1,4 +1,5 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { config } from '@/lib/config'
 
 export async function uploadResume(
   file: File,
@@ -19,7 +20,7 @@ export async function uploadResume(
       .upload(fileName, file, {
         upsert: true,
         contentType: file.type,
-        cacheControl: '3600',
+        cacheControl: config.cache.ttl.long.toString(),
       })
 
     if (error) {
@@ -59,7 +60,7 @@ export async function uploadResumePublic(
       .upload(fileName, file, {
         upsert: true,
         contentType: file.type,
-        cacheControl: '3600',
+        cacheControl: config.cache.ttl.long.toString(),
       })
 
     if (error) {

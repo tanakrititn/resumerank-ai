@@ -16,7 +16,14 @@
       "Bash(npx tsc:*)",
       "Bash(ls:*)",
       "Bash(npx supabase:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npx tsx:*)",
+      "Bash(kill:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill -9)",
+      "Bash(node test-realtime-connection.js:*)",
+      "Bash(psql:*)",
+      "Bash(git check-ignore:*)"
     ],
     "deny": [],
     "ask": []

@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 import { analyzeResumeFile } from '@/lib/ai/gemini'
 import { env } from '@/lib/env'
 import { broadcastCandidateChange } from '@/lib/utils/realtime-broadcast'
+import { rateLimitAIAnalysis } from '@/lib/rate-limit'
+import { logger } from '@/lib/logger'
 
 export const runtime = 'nodejs'
 export const maxDuration = 300 // 5 minutes
@@ -46,6 +48,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Rate limit AI analysis per user
+    const job = candidate.jobs as any
+    if (job?.user_id) {
+      const { success } = await rateLimitAIAnalysis(job.user_id)
+      if (!success) {
+        return NextResponse.json(
+          { error: 'Too many AI analysis requests. Please wait a moment and try again.' },
+          { status: 429 }
+        )
+      }
+    }
+
     // Check if already analyzed
     if (candidate.ai_score !== null) {
       return NextResponse.json({
@@ -61,8 +75,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-
-    const job = candidate.jobs as any
 
     if (!job || !job.description) {
       return NextResponse.json(
@@ -85,7 +97,11 @@ export async function POST(request: NextRequest) {
       .download(resumePath)
 
     if (downloadError || !fileData) {
-      console.error('Download error:', downloadError)
+      logger.error('Failed to download resume file', {
+        error: downloadError?.message,
+        candidateId,
+        resumePath,
+      })
       return NextResponse.json(
         { error: 'Failed to download resume' },
         { status: 500 }
@@ -122,14 +138,20 @@ ${job.location ? `Location: ${job.location}` : ''}
     )
 
     if (analysisError || !result) {
-      console.error('Analysis error:', analysisError)
-
       // Check if it's a temporary error (503, overloaded, rate limit)
       const isTemporaryError =
         analysisError?.includes('503') ||
         analysisError?.includes('overloaded') ||
         analysisError?.includes('rate limit') ||
         analysisError?.includes('RESOURCE_EXHAUSTED')
+
+      logger.error('AI resume analysis failed', {
+        error: analysisError,
+        candidateId,
+        jobId: candidate.job_id,
+        isTemporary: isTemporaryError,
+        userId: candidate.user_id,
+      })
 
       // For temporary errors, keep candidate as PENDING_REVIEW so it can be retried
       // For other errors, we could mark it as failed, but let's keep it pending for now
@@ -151,12 +173,19 @@ ${job.location ? `Location: ${job.location}` : ''}
       .update({
         ai_score: result.score,
         ai_summary: result.summary,
+        ai_strengths: result.strengths || [],
+        ai_weaknesses: result.weaknesses || [],
+        ai_recommendation: result.recommendation || null,
         status: 'REVIEWED',
       })
       .eq('id', candidateId)
 
     if (updateError) {
-      console.error('Update error:', updateError)
+      logger.error('Failed to save analysis results', {
+        error: updateError.message,
+        candidateId,
+        score: result.score,
+      })
       return NextResponse.json(
         { error: 'Failed to save analysis' },
         { status: 500 }
@@ -172,7 +201,11 @@ ${job.location ? `Location: ${job.location}` : ''}
         timestamp: new Date().toISOString(),
       })
     } catch (error) {
-      console.error('Failed to broadcast AI analysis completion:', error)
+      logger.warn('Failed to broadcast AI analysis completion', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        candidateId,
+        jobId,
+      })
     }
 
     // Update quota
@@ -187,6 +220,13 @@ ${job.location ? `Location: ${job.location}` : ''}
       metadata: { score: result.score, analysis: result },
     })
 
+    logger.info('AI resume analysis completed successfully', {
+      candidateId,
+      jobId: candidate.job_id,
+      userId: candidate.user_id,
+      score: result.score,
+    })
+
     return NextResponse.json({
       success: true,
       score: result.score,
@@ -194,7 +234,9 @@ ${job.location ? `Location: ${job.location}` : ''}
       analysis: result,
     })
   } catch (error) {
-    console.error('API error:', error)
+    logger.error('API analyze-resume error', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -13,7 +13,10 @@ export async function signUp(data: SignUpInput) {
 
     const supabase = await createClient()
 
-    // Sign up user
+    // Get the current origin for the redirect URL
+    const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+    // Sign up user with email confirmation
     const { data: authData, error: signUpError } = await supabase.auth.signUp({
       email: validated.email,
       password: validated.password,
@@ -22,6 +25,7 @@ export async function signUp(data: SignUpInput) {
           full_name: validated.fullName,
           company_name: validated.companyName || null,
         },
+        emailRedirectTo: `${origin}/auth/confirm`,
       },
     })
 
@@ -33,8 +37,8 @@ export async function signUp(data: SignUpInput) {
       return { error: 'Failed to create user' }
     }
 
-    // Update profile with company name
-    if (validated.companyName) {
+    // Update profile with company name if user is already confirmed (in development mode, Supabase might auto-confirm)
+    if (validated.companyName && authData.user.confirmed_at) {
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ company_name: validated.companyName })
@@ -46,7 +50,7 @@ export async function signUp(data: SignUpInput) {
     }
 
     revalidatePath('/', 'layout')
-    return { success: true }
+    return { success: true, email: validated.email }
   } catch (error) {
     console.error('Sign up error:', error)
     return { error: 'An unexpected error occurred' }
@@ -66,6 +70,14 @@ export async function signIn(data: SignInInput) {
     })
 
     if (error) {
+      // Check if error is related to email verification
+      if (error.message.includes('Email not confirmed')) {
+        return {
+          error: 'Please verify your email address before signing in.',
+          needsVerification: true,
+          email: validated.email
+        }
+      }
       return { error: error.message }
     }
 
@@ -112,4 +124,71 @@ export async function getCurrentUser() {
     .single()
 
   return { ...user, profile }
+}
+
+export async function requestPasswordReset(email: string) {
+  try {
+    const supabase = await createClient()
+
+    // Get the current origin for the redirect URL
+    const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${origin}/reset-password`,
+    })
+
+    if (error) {
+      return { error: error.message }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Password reset request error:', error)
+    return { error: 'An unexpected error occurred' }
+  }
+}
+
+export async function updatePassword(newPassword: string) {
+  try {
+    const supabase = await createClient()
+
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    })
+
+    if (error) {
+      return { error: error.message }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Password update error:', error)
+    return { error: 'An unexpected error occurred' }
+  }
+}
+
+export async function resendVerificationEmail(email: string) {
+  try {
+    const supabase = await createClient()
+
+    // Get the current origin for the redirect URL
+    const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: `${origin}/auth/confirm`,
+      },
+    })
+
+    if (error) {
+      return { error: error.message }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Resend verification email error:', error)
+    return { error: 'An unexpected error occurred' }
+  }
 }

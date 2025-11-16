@@ -27,6 +27,7 @@ import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
 import ComparisonDialog from '@/components/candidates/comparison-dialog'
+import BulkReAnalyzeDialog from '@/components/candidates/bulk-re-analyze-dialog'
 import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
 import {
@@ -43,6 +44,7 @@ import { useKeyboardShortcuts, type KeyboardShortcut } from '@/lib/hooks/use-key
 import { ContextMenu, useContextMenu, type ContextMenuItem } from '@/components/ui/context-menu-custom'
 import CommandPalette, { type CommandAction } from '@/components/command-palette'
 import KeyboardShortcutsHelp from '@/components/keyboard-shortcuts-help'
+import { config } from '@/lib/config'
 
 type Candidate = Database['public']['Tables']['candidates']['Row']
 
@@ -83,6 +85,7 @@ export default function RealtimeCandidatesList({
   const [isBulkDeleting, setIsBulkDeleting] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showComparisonDialog, setShowComparisonDialog] = useState(false)
+  const [showBulkReAnalyzeDialog, setShowBulkReAnalyzeDialog] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
 
   // Search & Filter states
@@ -509,6 +512,15 @@ export default function RealtimeCandidatesList({
       keywords: ['tag', 'label', 'bulk', 'organize'],
     },
     {
+      id: 'bulk-reanalyze',
+      label: 'Re-analyze Selected Candidates',
+      description: `Re-analyze ${selectedIds.size} candidates with AI`,
+      icon: <RefreshCw className="h-4 w-4" />,
+      category: 'Actions',
+      action: () => setShowBulkReAnalyzeDialog(true),
+      keywords: ['reanalyze', 'ai', 'score', 'bulk', 'analyze again'],
+    },
+    {
       id: 'bulk-delete',
       label: 'Delete Selected Candidates',
       description: `Delete ${selectedIds.size} selected candidates`,
@@ -590,79 +602,76 @@ export default function RealtimeCandidatesList({
   }, [candidates, onCandidatesChange])
 
   useEffect(() => {
+    console.log('🔄 Real-time useEffect triggered for job:', jobId)
+    console.log('🔧 Config enableRealtime:', config.features.enableRealtime)
+
+    // Check if real-time is enabled
+    if (!config.features.enableRealtime) {
+      console.log('⚠️ Real-time is disabled in configuration')
+      setConnectionAttempted(true)
+      setIsConnected(false)
+      return
+    }
+
     const supabase = createClient()
+    console.log('✅ Supabase client created')
+    console.log('📡 Setting up real-time subscription for job:', jobId)
 
     // Use broadcast channel - works without enabling Database Replication
     const channel = supabase
       .channel(`job:${jobId}:candidates`)
       .on('broadcast', { event: 'candidate-change' }, async (payload) => {
-        console.log('Real-time broadcast received:', payload)
-
-        const previousCandidates = [...candidates]
+        console.log('🔔 Real-time broadcast received:', payload)
 
         // Fetch fresh data when we receive a broadcast
         await fetchCandidates()
 
-        // Check for new candidates and send notifications
-        if (payload.payload?.action === 'insert' && payload.payload?.candidateId) {
-          // Wait a bit for fetchCandidates to complete
-          setTimeout(() => {
-            const newCandidate = candidates.find(c => c.id === payload.payload.candidateId)
-            if (newCandidate) {
-              // Get job title from somewhere (we'll need to pass it as prop or get it)
-              notificationService.notifyNewCandidate(
-                newCandidate.name,
-                'this position',  // You can pass job title as prop
-                jobId
-              )
-            }
-          }, 1000)
-        }
-
-        // Check for completed AI analysis
-        if (payload.payload?.action === 'update') {
-          setTimeout(() => {
-            const updatedCandidate = candidates.find(c => c.id === payload.payload.candidateId)
-            const previousCandidate = previousCandidates.find(c => c.id === payload.payload.candidateId)
-
-            if (updatedCandidate && previousCandidate) {
-              // If score changed from null to a number, AI analysis completed
-              if (previousCandidate.ai_score === null && updatedCandidate.ai_score !== null) {
-                notificationService.notifyAnalysisComplete(
-                  updatedCandidate.name,
-                  updatedCandidate.ai_score,
-                  jobId
-                )
-              }
-              // If status changed
-              else if (previousCandidate.status !== updatedCandidate.status) {
-                notificationService.notifyStatusChange(
-                  updatedCandidate.name,
-                  updatedCandidate.status,
-                  jobId
-                )
-              }
-            }
-          }, 1000)
+        // Show toast notification
+        if (payload.payload?.action === 'insert') {
+          toast.info('New candidate added!', {
+            description: 'The list has been updated.',
+          })
+        } else if (payload.payload?.action === 'update') {
+          toast.info('Candidate updated!', {
+            description: 'The list has been refreshed.',
+          })
+        } else if (payload.payload?.action === 'delete') {
+          toast.info('Candidate deleted!', {
+            description: 'The list has been updated.',
+          })
         }
       })
       .subscribe((status) => {
-        console.log('Real-time channel status:', status)
+        console.log('📶 Real-time channel status:', status)
+        console.log('🔍 Current isConnected before update:', isConnected)
         setConnectionAttempted(true)
 
         if (status === 'SUBSCRIBED') {
+          console.log('🎉 Setting isConnected to TRUE')
           setIsConnected(true)
           console.log('✅ Real-time enabled - updates will appear instantly!')
-        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          // Only show warning for actual errors, not for CLOSED (which is normal cleanup)
+          console.log('❌ Setting isConnected to FALSE (error)')
           setIsConnected(false)
           console.log('⚠️ Real-time connection failed - use refresh button for updates')
+          toast.error('Real-time connection failed', {
+            description: 'Please refresh the page to try again.',
+          })
+        } else if (status === 'CLOSED') {
+          // Normal cleanup - just update state, no toast
+          console.log('🔌 Setting isConnected to FALSE (closed)')
+          setIsConnected(false)
+        } else {
+          console.log('❓ Unknown status:', status)
         }
       })
 
     return () => {
+      console.log('🔌 Cleaning up real-time subscription')
       supabase.removeChannel(channel)
     }
-  }, [jobId, candidates])
+  }, [jobId])
 
   const isAllSelected = candidates.length > 0 && selectedIds.size === candidates.length
   const isSomeSelected = selectedIds.size > 0 && selectedIds.size < candidates.length
@@ -675,7 +684,7 @@ export default function RealtimeCandidatesList({
       <div
         style={{
           position: 'fixed',
-          bottom: '32px',
+          bottom: '16px',
           left: '50%',
           transform: 'translateX(-50%)',
           WebkitTransform: 'translateX(-50%)',
@@ -685,6 +694,8 @@ export default function RealtimeCandidatesList({
           pointerEvents: 'auto',
           animation: 'slideUp 0.3s ease-out',
           WebkitAnimation: 'slideUp 0.3s ease-out',
+          maxWidth: 'calc(100vw - 32px)',
+          width: 'auto',
         }}
       >
         <div
@@ -693,11 +704,93 @@ export default function RealtimeCandidatesList({
             borderRadius: '0.75rem',
             border: '2px solid rgb(226, 232, 240)',
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-            padding: '16px',
+            padding: '12px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 500 }}>
+          {/* Mobile Layout: Compact with dropdown menu for all actions */}
+          <div className="flex sm:hidden items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+              <span className="whitespace-nowrap">{selectedIds.size}</span>
+            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={isBulkUpdating || isBulkDeleting}
+                  className="bg-white hover:bg-primary/10 px-3"
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 z-[100000]">
+                {selectedIds.size >= 2 && selectedIds.size <= 3 && (
+                  <DropdownMenuItem onClick={() => setShowComparisonDialog(true)}>
+                    <Scale className="mr-2 h-4 w-4" />
+                    Compare
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={() => setShowBulkTagDialog(true)}>
+                  <TagIcon className="mr-2 h-4 w-4" />
+                  Manage Tags
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowBulkReAnalyzeDialog(true)}>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Re-analyze
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={isBulkUpdating || isBulkDeleting}
+                  className="bg-white hover:bg-primary/10 flex-1 max-w-[120px]"
+                >
+                  {isBulkUpdating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Filter className="mr-1 h-4 w-4" />
+                      <span className="truncate">Status</span>
+                    </>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="z-[100000]">
+                {Object.entries(statusLabels).map(([key, label]) => (
+                  <DropdownMenuItem
+                    key={key}
+                    onClick={() => handleBulkUpdateStatus(key)}
+                  >
+                    {label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearSelection}
+              disabled={isBulkUpdating || isBulkDeleting}
+              className="px-2"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Desktop Layout: Full horizontal layout */}
+          <div className="hidden sm:flex items-center gap-3">
+            <div className="flex items-center gap-2 text-sm font-medium">
               <CheckCircle2 className="h-5 w-5 text-primary" />
               <span>{selectedIds.size} selected</span>
             </div>
@@ -731,6 +824,17 @@ export default function RealtimeCandidatesList({
               Tags
             </Button>
 
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setShowBulkReAnalyzeDialog(true)}
+              disabled={isBulkUpdating || isBulkDeleting}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Re-analyze
+            </Button>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -745,11 +849,14 @@ export default function RealtimeCandidatesList({
                       Updating...
                     </>
                   ) : (
-                    'Change Status'
+                    <>
+                      <Filter className="mr-2 h-4 w-4" />
+                      Change Status
+                    </>
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="center">
+              <DropdownMenuContent align="center" className="z-[100000]">
                 {Object.entries(statusLabels).map(([key, label]) => (
                   <DropdownMenuItem
                     key={key}
@@ -1289,6 +1396,14 @@ export default function RealtimeCandidatesList({
         open={showComparisonDialog}
         onOpenChange={setShowComparisonDialog}
         onStatusChange={handleComparisonStatusChange}
+      />
+
+      {/* Bulk Re-analyze Dialog */}
+      <BulkReAnalyzeDialog
+        candidateIds={Array.from(selectedIds)}
+        candidateNames={new Map(candidates.filter(c => selectedIds.has(c.id)).map(c => [c.id, c.name]))}
+        open={showBulkReAnalyzeDialog}
+        onOpenChange={setShowBulkReAnalyzeDialog}
       />
 
       {/* Bulk Tag Dialog */}
