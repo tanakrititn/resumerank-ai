@@ -19,7 +19,7 @@ export default async function DashboardLayout({
     <div className="min-h-screen bg-gray-50">
       <DashboardNav user={user} />
       <ErrorBoundary>
-        <main className="container mx-auto py-8 px-4">
+        <main className="container mx-auto py-4 sm:py-6 md:py-8 px-3 sm:px-4 md:px-6 lg:px-8">
           {children}
         </main>
       </ErrorBoundary>

@@ -898,9 +898,9 @@ export default function RealtimeCandidatesList({
   return (
     <>
       <Card className="border-2 shadow-sm">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+        <CardHeader className="space-y-3 sm:space-y-4">
+          <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               {candidates.length > 0 && (
                 <Checkbox
                   checked={isAllSelected}
@@ -909,10 +909,10 @@ export default function RealtimeCandidatesList({
                   className={isSomeSelected ? 'data-[state=checked]:bg-primary' : ''}
                 />
               )}
-              <CardTitle>
-                Candidates ({filteredCandidates.length}{filteredCandidates.length !== candidates.length && ` of ${candidates.length}`})
+              <CardTitle className="text-base sm:text-lg md:text-xl min-w-0">
+                <span className="truncate">Candidates ({filteredCandidates.length}{filteredCandidates.length !== candidates.length && ` of ${candidates.length}`})</span>
                 {selectedIds.size > 0 && (
-                  <span className="ml-2 text-sm font-normal text-muted-foreground">
+                  <span className="ml-2 text-xs sm:text-sm font-normal text-muted-foreground whitespace-nowrap">
                     ({selectedIds.size} selected)
                   </span>
                 )}
@@ -920,30 +920,30 @@ export default function RealtimeCandidatesList({
               {connectionAttempted && (
                 <>
                   {isConnected ? (
-                    <div className="flex items-center space-x-2 text-sm text-green-600">
-                      <Wifi className="h-4 w-4" />
-                      <span>Live</span>
+                    <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-green-600 whitespace-nowrap">
+                      <Wifi className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">Live</span>
                     </div>
                   ) : (
-                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                      <WifiOff className="h-4 w-4" />
-                      <span className="text-xs">Realtime off</span>
+                    <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
+                      <WifiOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="text-[10px] sm:text-xs hidden sm:inline">Realtime off</span>
                     </div>
                   )}
                 </>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 flex-shrink-0">
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => setShowCommandPalette(true)}
-                className="gap-2"
+                className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3 hidden md:flex"
                 title="Open command palette (Cmd+K)"
               >
-                <CommandIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">Commands</span>
-                <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium">
+                <CommandIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden lg:inline text-xs sm:text-sm">Commands</span>
+                <kbd className="pointer-events-none hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium">
                   ⌘K
                 </kbd>
               </Button>
@@ -952,8 +952,9 @@ export default function RealtimeCandidatesList({
                 variant="ghost"
                 onClick={() => setShowShortcutsHelp(true)}
                 title="Keyboard shortcuts (?)"
+                className="h-8 sm:h-9 w-8 sm:w-9 p-0 hidden sm:flex"
               >
-                <Keyboard className="h-4 w-4" />
+                <Keyboard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
               {!isConnected && connectionAttempted && (
                 <Button
@@ -962,36 +963,40 @@ export default function RealtimeCandidatesList({
                   onClick={handleRefresh}
                   disabled={isRefreshing}
                   title="Refresh to see updates (R)"
+                  className="h-8 sm:h-9 w-8 sm:w-9 p-0"
                 >
-                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                 </Button>
               )}
               <Link href={`/jobs/${jobId}/candidates/new`}>
-                <Button size="sm">Add Candidate</Button>
+                <Button size="sm" className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm whitespace-nowrap">
+                  <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1.5" />
+                  <span className="hidden sm:inline">Add</span>
+                </Button>
               </Link>
             </div>
           </div>
 
           {/* Search & Filters Bar */}
-          <div className="mt-4 space-y-3">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="space-y-3">
+            <div className="flex gap-1.5 sm:gap-2">
+              <div className="relative flex-1 min-w-0">
+                <Search className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by name, email, or skills..."
+                  placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-10"
+                  className="pl-8 sm:pl-10 h-9 sm:h-10 text-sm"
                 />
               </div>
 
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="gap-2 h-10">
-                    <SlidersHorizontal className="h-4 w-4" />
-                    Filters
+                  <Button variant="outline" className="gap-1 sm:gap-2 h-9 sm:h-10 px-2 sm:px-3 flex-shrink-0">
+                    <SlidersHorizontal className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline text-sm">Filters</span>
                     {activeFiltersCount > 0 && (
-                      <Badge variant="default" className="ml-1 h-5 w-5 p-0 flex items-center justify-center rounded-full">
+                      <Badge variant="default" className="ml-0.5 sm:ml-1 h-4 w-4 sm:h-5 sm:w-5 p-0 flex items-center justify-center rounded-full text-[10px] sm:text-xs">
                         {activeFiltersCount}
                       </Badge>
                     )}

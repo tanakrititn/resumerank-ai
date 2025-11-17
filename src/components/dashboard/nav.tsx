@@ -59,23 +59,23 @@ export default function DashboardNav({ user }: { user: User }) {
   if (!mounted) {
     return (
       <nav className="border-b bg-white/95 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center space-x-8">
-              <Link href="/dashboard" className="flex items-center space-x-3">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="flex h-14 sm:h-16 items-center justify-between">
+            <div className="flex items-center space-x-4 sm:space-x-8">
+              <Link href="/dashboard" className="flex items-center space-x-2 sm:space-x-3">
                 <div className="relative">
-                  <div className="relative p-2 rounded-xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 shadow-lg">
-                    <Sparkles className="h-5 w-5 text-white" />
+                  <div className="relative p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 shadow-lg">
+                    <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                   </div>
                 </div>
-                <div>
-                  <span className="text-xl font-bold bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent">
+                <div className="hidden xs:block">
+                  <span className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent">
                     ResumeRank AI
                   </span>
                 </div>
               </Link>
             </div>
-            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-semibold text-sm shadow-md">
+            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-semibold text-xs sm:text-sm shadow-md">
               {getInitials()}
             </div>
           </div>
@@ -86,19 +86,19 @@ export default function DashboardNav({ user }: { user: User }) {
 
   return (
     <nav className="border-b bg-white/95 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+      <div className="container mx-auto px-3 sm:px-4">
+        <div className="flex h-14 sm:h-16 items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center space-x-8">
-            <Link href="/dashboard" className="flex items-center space-x-3 group">
+          <div className="flex items-center space-x-4 sm:space-x-6 md:space-x-8">
+            <Link href="/dashboard" className="flex items-center space-x-2 sm:space-x-3 group">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/60 rounded-xl blur-md opacity-75 group-hover:opacity-100 transition-opacity" />
-                <div className="relative p-2 rounded-xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                  <Sparkles className="h-5 w-5 text-white" />
+                <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/60 rounded-lg sm:rounded-xl blur-md opacity-75 group-hover:opacity-100 transition-opacity" />
+                <div className="relative p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 group-hover:scale-110 transition-all duration-300 shadow-lg">
+                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
               </div>
-              <div>
-                <span className="text-xl font-bold bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent">
+              <div className="hidden xs:block">
+                <span className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent">
                   ResumeRank AI
                 </span>
               </div>
@@ -116,14 +116,14 @@ export default function DashboardNav({ user }: { user: User }) {
                       size="sm"
                       className={
                         isActive
-                          ? 'relative overflow-visible bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
-                          : 'hover:bg-secondary/80 hover:scale-105 transition-all duration-200 focus-visible:bg-secondary/80 focus-visible:scale-105'
+                          ? 'relative overflow-visible bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 h-9 text-sm'
+                          : 'hover:bg-secondary/80 hover:scale-105 transition-all duration-200 focus-visible:bg-secondary/80 focus-visible:scale-105 h-9 text-sm'
                       }
                     >
-                      <Icon className="mr-2 h-4 w-4" />
+                      <Icon className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       {item.label}
                       {isActive && (
-                        <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-8 h-1 bg-white rounded-t-full shadow-sm" />
+                        <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-6 sm:w-8 h-1 bg-white rounded-t-full shadow-sm" />
                       )}
                     </Button>
                   </Link>
@@ -133,28 +133,28 @@ export default function DashboardNav({ user }: { user: User }) {
           </div>
 
           {/* Right Side - Desktop User Menu & Mobile Menu Button */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Desktop User Dropdown */}
             <div className="hidden sm:block">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="gap-3 hover:bg-secondary/80 h-auto py-2 px-3"
+                    className="gap-2 sm:gap-3 hover:bg-secondary/80 h-auto py-1.5 sm:py-2 px-2 sm:px-3"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-semibold text-sm shadow-md">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-semibold text-xs sm:text-sm shadow-md">
                         {getInitials()}
                       </div>
                       <div className="text-left hidden lg:block">
-                        <p className="text-sm font-semibold leading-tight">
+                        <p className="text-xs sm:text-sm font-semibold leading-tight truncate max-w-[120px]">
                           {user.profile?.full_name || 'User'}
                         </p>
                         <p className="text-xs text-muted-foreground leading-tight">
                           View profile
                         </p>
                       </div>
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      <ChevronDown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
@@ -200,40 +200,40 @@ export default function DashboardNav({ user }: { user: User }) {
             {/* Mobile Menu Button */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild className="md:hidden">
-                <Button variant="outline" size="icon" className="border-2 hover:border-primary/50">
-                  <Menu className="h-5 w-5" />
+                <Button variant="outline" size="icon" className="border-2 hover:border-primary/50 h-9 w-9 sm:h-10 sm:w-10">
+                  <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[85vw] max-w-[400px] sm:w-[400px]">
                 <SheetHeader>
-                  <SheetTitle className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
-                      <Sparkles className="h-5 w-5 text-white" />
+                  <SheetTitle className="flex items-center gap-2 sm:gap-3">
+                    <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
+                      <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                     </div>
-                    <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-bold">
+                    <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-bold text-base sm:text-lg">
                       ResumeRank AI
                     </span>
                   </SheetTitle>
                 </SheetHeader>
 
-                <div className="mt-8 flex flex-col space-y-4">
+                <div className="mt-6 sm:mt-8 flex flex-col space-y-3 sm:space-y-4">
                   {/* User Info */}
-                  <div className="flex items-center space-x-3 pb-4 border-b bg-secondary/30 rounded-lg p-4">
-                    <div className="h-14 w-14 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-semibold text-lg shadow-lg">
+                  <div className="flex items-center space-x-2.5 sm:space-x-3 pb-3 sm:pb-4 border-b bg-secondary/30 rounded-lg p-3 sm:p-4">
+                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-semibold text-base sm:text-lg shadow-lg">
                       {getInitials()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold truncate text-base">
+                      <p className="font-semibold truncate text-sm sm:text-base">
                         {user.profile?.full_name || 'User'}
                       </p>
-                      <p className="text-sm text-muted-foreground truncate">
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">
                         {user.email}
                       </p>
                     </div>
                   </div>
 
                   {/* Navigation Items */}
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 sm:space-y-2">
                     {navItems.map((item) => {
                       const Icon = item.icon
                       const isActive = pathname === item.href
@@ -245,14 +245,13 @@ export default function DashboardNav({ user }: { user: User }) {
                         >
                           <Button
                             variant={isActive ? 'default' : 'ghost'}
-                            className={`w-full justify-start text-base h-12 ${
+                            className={`w-full justify-start text-sm sm:text-base h-11 sm:h-12 ${
                               isActive
                                 ? 'bg-gradient-to-r from-primary to-primary/80 shadow-lg'
                                 : 'hover:bg-secondary/80'
                             }`}
-                            size="lg"
                           >
-                            <Icon className="mr-3 h-5 w-5" />
+                            <Icon className="mr-2.5 sm:mr-3 h-4.5 w-4.5 sm:h-5 sm:w-5" />
                             {item.label}
                           </Button>
                         </Link>
@@ -263,17 +262,16 @@ export default function DashboardNav({ user }: { user: User }) {
                   {/* Admin Link */}
                   {user.profile?.is_admin && (
                     <>
-                      <div className="border-t pt-4">
+                      <div className="border-t pt-3 sm:pt-4">
                         <Link
                           href="/admin/dashboard"
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           <Button
                             variant="outline"
-                            className="w-full justify-start text-base border-2 border-primary/20 hover:border-primary/50 h-12"
-                            size="lg"
+                            className="w-full justify-start text-sm sm:text-base border-2 border-primary/20 hover:border-primary/50 h-11 sm:h-12"
                           >
-                            <Shield className="mr-3 h-5 w-5 text-primary" />
+                            <Shield className="mr-2.5 sm:mr-3 h-4.5 w-4.5 sm:h-5 sm:w-5 text-primary" />
                             Admin Panel
                           </Button>
                         </Link>
@@ -282,17 +280,16 @@ export default function DashboardNav({ user }: { user: User }) {
                   )}
 
                   {/* Sign Out */}
-                  <div className="border-t pt-4">
+                  <div className="border-t pt-3 sm:pt-4">
                     <Button
                       variant="outline"
-                      className="w-full justify-start text-base border-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 h-12"
-                      size="lg"
+                      className="w-full justify-start text-sm sm:text-base border-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 h-11 sm:h-12"
                       onClick={() => {
                         setMobileMenuOpen(false)
                         signOut()
                       }}
                     >
-                      <LogOut className="mr-3 h-5 w-5" />
+                      <LogOut className="mr-2.5 sm:mr-3 h-4.5 w-4.5 sm:h-5 sm:w-5" />
                       Sign Out
                     </Button>
                   </div>

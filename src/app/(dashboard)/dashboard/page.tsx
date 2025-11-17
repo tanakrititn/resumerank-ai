@@ -176,29 +176,29 @@ export default async function DashboardPage() {
   const scoreChartData = scoreRanges.filter((r) => r.count > 0)
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in">
       {/* Welcome Section */}
-      <div className="relative overflow-hidden rounded-xl gradient-primary p-8 text-white shadow-lg">
+      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl gradient-primary p-6 sm:p-8 md:p-10 text-white shadow-lg">
         <div className="relative z-10">
-          <h1 className="text-3xl font-bold mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
             Welcome back! 👋
           </h1>
-          <p className="text-white/90 mb-4">
+          <p className="text-white/90 mb-4 sm:mb-5 md:mb-6 text-sm sm:text-base md:text-lg">
             Here's what's happening with your recruitment today.
           </p>
           <Link href="/jobs/new">
             <Button
               variant="secondary"
               size="lg"
-              className="bg-white text-primary hover:bg-white/90 shadow-md focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+              className="bg-white text-primary hover:bg-white/90 shadow-md focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary text-sm sm:text-base h-10 sm:h-11 md:h-12"
             >
               Create New Job
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
           </Link>
         </div>
-        <div className="absolute -right-8 -bottom-8 h-40 w-40 rounded-full bg-white/10 blur-3xl pointer-events-none"></div>
-        <div className="absolute -left-8 -top-8 h-40 w-40 rounded-full bg-white/10 blur-3xl pointer-events-none"></div>
+        <div className="absolute -right-8 -bottom-8 h-32 w-32 sm:h-40 sm:w-40 rounded-full bg-white/10 blur-3xl pointer-events-none"></div>
+        <div className="absolute -left-8 -top-8 h-32 w-32 sm:h-40 sm:w-40 rounded-full bg-white/10 blur-3xl pointer-events-none"></div>
       </div>
 
       {/* Stats Grid - Real-time */}

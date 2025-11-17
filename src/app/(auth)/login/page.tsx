@@ -59,18 +59,18 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Welcome back</CardTitle>
-          <CardDescription>
+    <div className="flex min-h-screen items-center justify-center p-3 sm:p-4 md:p-6">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="space-y-1 sm:space-y-2 p-5 sm:p-6">
+          <CardTitle className="text-xl sm:text-2xl text-foreground">Welcome back</CardTitle>
+          <CardDescription className="text-sm sm:text-base text-muted-foreground">
             Sign in to your account to continue
           </CardDescription>
         </CardHeader>
         <form onSubmit={onSubmit}>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-5 sm:p-6 pt-0">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm sm:text-base text-foreground">Email</Label>
               <Input
                 id="email"
                 name="email"
@@ -78,14 +78,15 @@ function LoginForm() {
                 placeholder="john@example.com"
                 required
                 disabled={isLoading}
+                className="h-10 sm:h-11 text-sm sm:text-base"
               />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-sm sm:text-base text-foreground">Password</Label>
                 <Link
                   href="/forgot-password"
-                  className="text-xs text-primary hover:underline"
+                  className="text-xs sm:text-sm text-primary hover:underline"
                 >
                   Forgot password?
                 </Link>
@@ -96,17 +97,18 @@ function LoginForm() {
                 type="password"
                 required
                 disabled={isLoading}
+                className="h-10 sm:h-11 text-sm sm:text-base"
               />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
+          <CardFooter className="flex flex-col space-y-4 p-5 sm:p-6 pt-0">
+            <Button type="submit" className="w-full h-10 sm:h-11 text-sm sm:text-base" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Sign In
             </Button>
-            <p className="text-sm text-center text-muted-foreground">
+            <p className="text-xs sm:text-sm text-center text-muted-foreground">
               Don't have an account?{' '}
-              <Link href="/signup" className="underline hover:text-primary">
+              <Link href="/signup" className="underline hover:text-primary font-medium">
                 Sign up
               </Link>
             </p>
@@ -120,11 +122,11 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Welcome back</CardTitle>
-            <CardDescription>
+      <div className="flex min-h-screen items-center justify-center p-3 sm:p-4 md:p-6">
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader className="space-y-1 sm:space-y-2 p-5 sm:p-6">
+            <CardTitle className="text-xl sm:text-2xl text-foreground">Welcome back</CardTitle>
+            <CardDescription className="text-sm sm:text-base text-muted-foreground">
               Sign in to your account to continue
             </CardDescription>
           </CardHeader>

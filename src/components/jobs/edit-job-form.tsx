@@ -57,32 +57,32 @@ export default function EditJobForm({ job }: { job: Job }) {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
-      <div className="flex items-center gap-4">
+    <div className="max-w-3xl mx-auto space-y-4 sm:space-y-5 md:space-y-6 animate-fade-in p-3 sm:p-4 md:p-6">
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
         <Link href={`/jobs/${job.id}`}>
-          <Button variant="ghost" size="icon" className="hover:bg-secondary">
-            <ArrowLeft className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="hover:bg-secondary h-9 w-9 sm:h-10 sm:w-10">
+            <ArrowLeft className="h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5" />
           </Button>
         </Link>
-        <div>
-          <h1 className="text-4xl font-bold">Edit Job</h1>
-          <p className="text-muted-foreground mt-1 text-lg">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold truncate">Edit Job</h1>
+          <p className="text-muted-foreground mt-0.5 sm:mt-1 text-sm sm:text-base md:text-lg truncate">
             Update your job posting details
           </p>
         </div>
       </div>
 
       <Card className="border-2 shadow-lg">
-        <CardHeader className="gradient-card border-b">
-          <CardTitle className="flex items-center gap-2 text-2xl">
-            <Briefcase className="h-6 w-6 text-primary" />
+        <CardHeader className="gradient-card border-b p-4 sm:p-5 md:p-6">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl md:text-2xl">
+            <Briefcase className="h-5 w-5 sm:h-5.5 sm:w-5.5 md:h-6 md:w-6 text-primary" />
             Job Details
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-6">
-          <form onSubmit={onSubmit} className="space-y-6">
+        <CardContent className="pt-4 sm:pt-5 md:pt-6 p-4 sm:p-5 md:p-6">
+          <form onSubmit={onSubmit} className="space-y-4 sm:space-y-5 md:space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="title" className="text-base font-semibold">
+              <Label htmlFor="title" className="text-sm sm:text-base font-semibold">
                 Job Title <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -91,51 +91,51 @@ export default function EditJobForm({ job }: { job: Job }) {
                 defaultValue={job.title}
                 required
                 disabled={isLoading}
-                className="h-12 text-base border-2 focus-visible:border-primary"
+                className="h-10 sm:h-11 md:h-12 text-sm sm:text-base border-2 focus-visible:border-primary"
               />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Choose a clear, specific job title
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-base font-semibold">
+              <Label htmlFor="description" className="text-sm sm:text-base font-semibold">
                 Description <span className="text-red-500">*</span>
               </Label>
               <Textarea
                 id="description"
                 name="description"
                 defaultValue={job.description}
-                rows={6}
+                rows={4}
                 required
                 disabled={isLoading}
-                className="text-base border-2 focus-visible:border-primary resize-none"
+                className="text-sm sm:text-base border-2 focus-visible:border-primary resize-none min-h-[100px] sm:min-h-[120px]"
               />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Provide a detailed description of the role and key responsibilities
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="requirements" className="text-base font-semibold">
+              <Label htmlFor="requirements" className="text-sm sm:text-base font-semibold">
                 Requirements
               </Label>
               <Textarea
                 id="requirements"
                 name="requirements"
                 defaultValue={job.requirements || ''}
-                rows={5}
+                rows={4}
                 disabled={isLoading}
-                className="text-base border-2 focus-visible:border-primary resize-none"
+                className="text-sm sm:text-base border-2 focus-visible:border-primary resize-none min-h-[80px] sm:min-h-[100px]"
               />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Specify required skills, experience level, and qualifications
               </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-4 sm:gap-5 md:gap-6 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="location" className="text-base font-semibold">
+                <Label htmlFor="location" className="text-sm sm:text-base font-semibold">
                   Location
                 </Label>
                 <Input
@@ -143,12 +143,12 @@ export default function EditJobForm({ job }: { job: Job }) {
                   name="location"
                   defaultValue={job.location || ''}
                   disabled={isLoading}
-                  className="h-12 text-base border-2 focus-visible:border-primary"
+                  className="h-10 sm:h-11 md:h-12 text-sm sm:text-base border-2 focus-visible:border-primary"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="salary_range" className="text-base font-semibold">
+                <Label htmlFor="salary_range" className="text-sm sm:text-base font-semibold">
                   Salary Range
                 </Label>
                 <Input
@@ -156,13 +156,13 @@ export default function EditJobForm({ job }: { job: Job }) {
                   name="salary_range"
                   defaultValue={job.salary_range || ''}
                   disabled={isLoading}
-                  className="h-12 text-base border-2 focus-visible:border-primary"
+                  className="h-10 sm:h-11 md:h-12 text-sm sm:text-base border-2 focus-visible:border-primary"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status" className="text-base font-semibold">
+              <Label htmlFor="status" className="text-sm sm:text-base font-semibold">
                 Status
               </Label>
               <Select
@@ -170,7 +170,7 @@ export default function EditJobForm({ job }: { job: Job }) {
                 defaultValue={job.status}
                 disabled={isLoading}
               >
-                <SelectTrigger className="h-12 text-base border-2 focus:border-primary">
+                <SelectTrigger className="h-10 sm:h-11 md:h-12 text-sm sm:text-base border-2 focus:border-primary">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -179,28 +179,26 @@ export default function EditJobForm({ job }: { job: Job }) {
                   <SelectItem value="CLOSED">Closed</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Control whether the job accepts new applications
               </p>
             </div>
 
-            <div className="flex gap-4 pt-4 border-t">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-3 sm:pt-4 border-t">
               <Button
                 type="submit"
                 disabled={isLoading}
-                size="lg"
-                className="flex-1 gradient-primary shadow-md text-base"
+                className="w-full sm:flex-1 h-10 sm:h-11 md:h-12 gradient-primary shadow-md text-sm sm:text-base"
               >
-                {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5 animate-spin" />}
                 Update Job
               </Button>
-              <Link href={`/jobs/${job.id}`}>
+              <Link href={`/jobs/${job.id}`} className="w-full sm:w-auto">
                 <Button
                   type="button"
                   variant="outline"
                   disabled={isLoading}
-                  size="lg"
-                  className="border-2"
+                  className="w-full h-10 sm:h-11 md:h-12 border-2 text-sm sm:text-base"
                 >
                   Cancel
                 </Button>

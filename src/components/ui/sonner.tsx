@@ -18,11 +18,20 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       icons={{
-        success: <CircleCheckIcon className="size-4" />,
-        info: <InfoIcon className="size-4" />,
-        warning: <TriangleAlertIcon className="size-4" />,
-        error: <OctagonXIcon className="size-4" />,
-        loading: <Loader2Icon className="size-4 animate-spin" />,
+        success: <CircleCheckIcon className="size-4 text-green-700 dark:text-green-400" />,
+        info: <InfoIcon className="size-4 text-blue-700 dark:text-blue-400" />,
+        warning: <TriangleAlertIcon className="size-4 text-amber-700 dark:text-amber-400" />,
+        error: <OctagonXIcon className="size-4 text-red-700 dark:text-red-400" />,
+        loading: <Loader2Icon className="size-4 animate-spin text-blue-700 dark:text-blue-400" />,
+      }}
+      toastOptions={{
+        classNames: {
+          toast: "group-[.toaster]:bg-popover group-[.toaster]:text-popover-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
+          title: "group-[.toast]:text-foreground group-[.toast]:font-semibold",
+          description: "group-[.toast]:text-muted-foreground",
+          actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
+          cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+        },
       }}
       style={
         {

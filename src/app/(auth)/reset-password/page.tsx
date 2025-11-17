@@ -102,16 +102,16 @@ export default function ResetPasswordPage() {
   // Show loading state while verifying session
   if (isVerifying) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center p-3 sm:p-4 md:p-6">
         <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle>Verifying reset link...</CardTitle>
-            <CardDescription>
+          <CardHeader className="text-center p-4 sm:p-5 md:p-6">
+            <CardTitle className="text-lg sm:text-xl md:text-2xl">Verifying reset link...</CardTitle>
+            <CardDescription className="text-xs sm:text-sm md:text-base">
               Please wait while we verify your password reset link
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <CardContent className="flex justify-center py-6 sm:py-8 p-4 sm:p-5 md:p-6">
+            <Loader2 className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 animate-spin text-primary" />
           </CardContent>
         </Card>
       </div>
@@ -121,19 +121,19 @@ export default function ResetPasswordPage() {
   // Show error state if session is invalid
   if (!hasValidSession) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center p-3 sm:p-4 md:p-6">
         <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-              <AlertCircle className="h-8 w-8 text-red-600" />
+          <CardHeader className="text-center p-4 sm:p-5 md:p-6">
+            <div className="mx-auto mb-3 sm:mb-4 flex h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 items-center justify-center rounded-full bg-red-100">
+              <AlertCircle className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-red-600" />
             </div>
-            <CardTitle>Invalid Reset Link</CardTitle>
-            <CardDescription className="text-base">
+            <CardTitle className="text-lg sm:text-xl md:text-2xl">Invalid Reset Link</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               This password reset link is invalid or has expired.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
+          <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-5 md:p-6">
+            <div className="rounded-lg bg-muted p-3 sm:p-4 text-xs sm:text-sm text-muted-foreground">
               <p className="mb-2">
                 Password reset links expire after 1 hour for security reasons.
               </p>
@@ -142,10 +142,10 @@ export default function ResetPasswordPage() {
               </p>
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="p-4 sm:p-5 md:p-6">
             <Button
               variant="default"
-              className="w-full"
+              className="w-full h-10 sm:h-11 text-sm sm:text-base"
               onClick={() => router.push('/forgot-password')}
             >
               Request New Link
@@ -159,19 +159,19 @@ export default function ResetPasswordPage() {
   // Show success state after password reset
   if (passwordReset) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center p-3 sm:p-4 md:p-6">
         <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
+          <CardHeader className="text-center p-4 sm:p-5 md:p-6">
+            <div className="mx-auto mb-3 sm:mb-4 flex h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 items-center justify-center rounded-full bg-green-100">
+              <CheckCircle2 className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-green-600" />
             </div>
-            <CardTitle>Password reset successful!</CardTitle>
-            <CardDescription className="text-base">
+            <CardTitle className="text-lg sm:text-xl md:text-2xl">Password reset successful!</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               Your password has been changed. Redirecting to login...
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <CardContent className="flex justify-center p-4 sm:p-5 md:p-6">
+            <Loader2 className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 animate-spin text-primary" />
           </CardContent>
         </Card>
       </div>
@@ -180,18 +180,18 @@ export default function ResetPasswordPage() {
 
   // Show password reset form
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center p-3 sm:p-4 md:p-6">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Reset your password</CardTitle>
-          <CardDescription>
+        <CardHeader className="p-4 sm:p-5 md:p-6">
+          <CardTitle className="text-lg sm:text-xl md:text-2xl">Reset your password</CardTitle>
+          <CardDescription className="text-xs sm:text-sm md:text-base">
             Enter your new password below
           </CardDescription>
         </CardHeader>
         <form onSubmit={onSubmit}>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-5 md:p-6">
             <div className="space-y-2">
-              <Label htmlFor="password">New Password</Label>
+              <Label htmlFor="password" className="text-sm sm:text-base">New Password</Label>
               <Input
                 id="password"
                 name="password"
@@ -200,13 +200,14 @@ export default function ResetPasswordPage() {
                 required
                 disabled={isLoading}
                 minLength={8}
+                className="h-10 sm:h-11 text-sm sm:text-base"
               />
               <p className="text-xs text-muted-foreground">
                 At least 8 characters with uppercase, lowercase, and numbers
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="text-sm sm:text-base">Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 name="confirmPassword"
@@ -215,12 +216,13 @@ export default function ResetPasswordPage() {
                 required
                 disabled={isLoading}
                 minLength={8}
+                className="h-10 sm:h-11 text-sm sm:text-base"
               />
             </div>
           </CardContent>
-          <CardFooter>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <CardFooter className="p-4 sm:p-5 md:p-6">
+            <Button type="submit" className="w-full h-10 sm:h-11 text-sm sm:text-base" disabled={isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />}
               Reset password
             </Button>
           </CardFooter>

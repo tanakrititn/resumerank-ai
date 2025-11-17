@@ -41,19 +41,19 @@ export default function ForgotPasswordPage() {
 
   if (emailSent) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center p-3 sm:p-4 md:p-6">
         <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-              <Mail className="h-8 w-8 text-green-600" />
+          <CardHeader className="text-center p-4 sm:p-5 md:p-6">
+            <div className="mx-auto mb-3 sm:mb-4 flex h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 items-center justify-center rounded-full bg-green-100">
+              <Mail className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-green-600" />
             </div>
-            <CardTitle>Check your email</CardTitle>
-            <CardDescription className="text-base">
-              We've sent a password reset link to <strong>{email}</strong>
+            <CardTitle className="text-lg sm:text-xl md:text-2xl">Check your email</CardTitle>
+            <CardDescription className="text-sm sm:text-base break-words">
+              We've sent a password reset link to <strong className="break-all">{email}</strong>
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
+          <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-5 md:p-6">
+            <div className="rounded-lg bg-muted p-3 sm:p-4 text-xs sm:text-sm text-muted-foreground">
               <p className="mb-2">
                 Click the link in the email to reset your password. The link will expire in 1 hour.
               </p>
@@ -62,17 +62,17 @@ export default function ForgotPasswordPage() {
               </p>
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
+          <CardFooter className="flex flex-col space-y-3 sm:space-y-4 p-4 sm:p-5 md:p-6">
             <Button
               variant="outline"
-              className="w-full"
+              className="w-full h-10 sm:h-11 text-sm sm:text-base"
               onClick={() => setEmailSent(false)}
             >
               Resend email
             </Button>
             <Link href="/login" className="w-full">
-              <Button variant="ghost" className="w-full">
-                <ArrowLeft className="mr-2 h-4 w-4" />
+              <Button variant="ghost" className="w-full h-10 sm:h-11 text-sm sm:text-base">
+                <ArrowLeft className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Back to login
               </Button>
             </Link>
@@ -83,18 +83,18 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center p-3 sm:p-4 md:p-6">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Forgot password?</CardTitle>
-          <CardDescription>
+        <CardHeader className="p-4 sm:p-5 md:p-6">
+          <CardTitle className="text-lg sm:text-xl md:text-2xl">Forgot password?</CardTitle>
+          <CardDescription className="text-xs sm:text-sm md:text-base">
             Enter your email address and we'll send you a link to reset your password
           </CardDescription>
         </CardHeader>
         <form onSubmit={onSubmit}>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-5 md:p-6">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm sm:text-base">Email</Label>
               <Input
                 id="email"
                 name="email"
@@ -102,17 +102,18 @@ export default function ForgotPasswordPage() {
                 placeholder="john@example.com"
                 required
                 disabled={isLoading}
+                className="h-10 sm:h-11 text-sm sm:text-base"
               />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <CardFooter className="flex flex-col space-y-3 sm:space-y-4 p-4 sm:p-5 md:p-6">
+            <Button type="submit" className="w-full h-10 sm:h-11 text-sm sm:text-base" disabled={isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />}
               Send reset link
             </Button>
             <Link href="/login" className="w-full">
-              <Button variant="ghost" className="w-full">
-                <ArrowLeft className="mr-2 h-4 w-4" />
+              <Button variant="ghost" className="w-full h-10 sm:h-11 text-sm sm:text-base">
+                <ArrowLeft className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Back to login
               </Button>
             </Link>

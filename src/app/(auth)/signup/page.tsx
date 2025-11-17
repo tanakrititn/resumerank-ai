@@ -45,28 +45,29 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Create an account</CardTitle>
-          <CardDescription>
+    <div className="flex min-h-screen items-center justify-center p-3 sm:p-4 md:p-6">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="space-y-1 sm:space-y-2 p-5 sm:p-6">
+          <CardTitle className="text-xl sm:text-2xl text-foreground">Create an account</CardTitle>
+          <CardDescription className="text-sm sm:text-base text-muted-foreground">
             Enter your information to get started
           </CardDescription>
         </CardHeader>
         <form onSubmit={onSubmit}>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-5 sm:p-6 pt-0">
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
+              <Label htmlFor="fullName" className="text-sm sm:text-base text-foreground">Full Name</Label>
               <Input
                 id="fullName"
                 name="fullName"
                 placeholder="John Doe"
                 required
                 disabled={isLoading}
+                className="h-10 sm:h-11 text-sm sm:text-base"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm sm:text-base text-foreground">Email</Label>
               <Input
                 id="email"
                 name="email"
@@ -74,39 +75,42 @@ export default function SignUpPage() {
                 placeholder="john@example.com"
                 required
                 disabled={isLoading}
+                className="h-10 sm:h-11 text-sm sm:text-base"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="companyName">Company Name (Optional)</Label>
+              <Label htmlFor="companyName" className="text-sm sm:text-base text-foreground">Company Name (Optional)</Label>
               <Input
                 id="companyName"
                 name="companyName"
                 placeholder="Acme Inc."
                 disabled={isLoading}
+                className="h-10 sm:h-11 text-sm sm:text-base"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-sm sm:text-base text-foreground">Password</Label>
               <Input
                 id="password"
                 name="password"
                 type="password"
                 required
                 disabled={isLoading}
+                className="h-10 sm:h-11 text-sm sm:text-base"
               />
               <p className="text-xs text-muted-foreground">
                 At least 8 characters with uppercase, lowercase, and numbers
               </p>
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
+          <CardFooter className="flex flex-col space-y-4 p-5 sm:p-6 pt-0">
+            <Button type="submit" className="w-full h-10 sm:h-11 text-sm sm:text-base" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Sign Up
             </Button>
-            <p className="text-sm text-center text-muted-foreground">
+            <p className="text-xs sm:text-sm text-center text-muted-foreground">
               Already have an account?{' '}
-              <Link href="/login" className="underline hover:text-primary">
+              <Link href="/login" className="underline hover:text-primary font-medium">
                 Sign in
               </Link>
             </p>

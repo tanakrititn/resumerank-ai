@@ -65,31 +65,36 @@ export default function NotificationBanner() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 max-w-md animate-slide-up">
+    <div className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 z-50 max-w-[calc(100vw-1.5rem)] sm:max-w-md animate-slide-up">
       <Card className="border-2 shadow-2xl bg-gradient-to-r from-purple-50 to-blue-50">
-        <div className="p-4">
-          <div className="flex items-start gap-4">
-            <div className="p-3 rounded-full bg-gradient-to-br from-purple-500 to-blue-500">
-              <Bell className="h-6 w-6 text-white" />
+        <div className="p-3 sm:p-4">
+          <div className="flex items-start gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex-shrink-0">
+              <Bell className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
-            <div className="flex-1 space-y-2">
+            <div className="flex-1 space-y-2 min-w-0">
               <div>
-                <h3 className="font-semibold text-lg">Enable Notifications</h3>
-                <p className="text-sm text-muted-foreground mt-1">
+                <h3 className="font-semibold text-base sm:text-lg text-foreground">Enable Notifications</h3>
+                <p className="text-xs sm:text-sm text-foreground/70 mt-1">
                   Get instant alerts when new candidates apply or AI analysis completes
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button
                   size="sm"
                   onClick={handleEnable}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-xs sm:text-sm h-8 sm:h-9"
                 >
-                  <Check className="mr-2 h-4 w-4" />
+                  <Check className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   Enable
                 </Button>
-                <Button size="sm" variant="ghost" onClick={handleDismiss}>
-                  <X className="mr-2 h-4 w-4" />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleDismiss}
+                  className="text-foreground hover:text-foreground hover:bg-secondary/80 text-xs sm:text-sm h-8 sm:h-9"
+                >
+                  <X className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   Maybe Later
                 </Button>
               </div>
@@ -98,9 +103,9 @@ export default function NotificationBanner() {
               size="icon"
               variant="ghost"
               onClick={handleDismiss}
-              className="flex-shrink-0"
+              className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 text-foreground hover:text-foreground hover:bg-secondary/80"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
           </div>
         </div>
