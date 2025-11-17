@@ -176,6 +176,8 @@ export async function POST(request: NextRequest) {
       const authToken = env.SUPABASE_SERVICE_ROLE_KEY.substring(0, 20)
       const analyzeUrl = `${env.NEXT_PUBLIC_APP_URL}/api/analyze-resume`
 
+      console.log('Triggering AI analysis at:', analyzeUrl)
+
       fetch(analyzeUrl, {
         method: 'POST',
         headers: {
@@ -183,9 +185,23 @@ export async function POST(request: NextRequest) {
           Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify({ candidateId: candidate.id }),
-      }).catch((error) => {
-        console.error('Failed to trigger AI analysis:', error)
       })
+        .then(async (res) => {
+          if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}))
+            console.error('AI analysis API error:', {
+              status: res.status,
+              statusText: res.statusText,
+              error: errorData,
+            })
+          } else {
+            const data = await res.json()
+            console.log('AI analysis triggered successfully:', data)
+          }
+        })
+        .catch((error) => {
+          console.error('Failed to trigger AI analysis:', error)
+        })
     } catch (error) {
       console.error('Failed to trigger AI analysis:', error)
     }
