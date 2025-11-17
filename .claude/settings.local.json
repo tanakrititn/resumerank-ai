@@ -25,7 +25,8 @@
       "Bash(psql:*)",
       "Bash(git check-ignore:*)",
       "Bash(npm uninstall:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

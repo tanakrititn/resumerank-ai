@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import PublicJobApplicationForm from '@/components/apply/public-job-application-form'
 import { Briefcase, MapPin, DollarSign, Building2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -11,7 +11,9 @@ export default async function PublicJobApplicationPage({
   params: Promise<{ jobId: string }>
 }) {
   const { jobId } = await params
-  const supabase = await createClient()
+
+  // Use admin client to bypass RLS for public job viewing
+  const supabase = createAdminClient()
 
   // Fetch job details without authentication
   const { data: job, error } = await supabase
