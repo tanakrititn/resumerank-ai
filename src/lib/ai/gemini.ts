@@ -73,7 +73,7 @@ export async function analyzeResumeFile(
     console.log('Gemini file uploaded:', uploadResult.file.uri)
 
     // Use Gemini 2.5 Flash
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })
 
     const prompt = `
 You are an expert HR recruiter analyzing a resume for a job position.
@@ -172,7 +172,7 @@ export async function analyzeResume(
 ): Promise<{ result?: AnalysisResult; error?: string }> {
   try {
     // Use Gemini 1.5 Flash (Free tier)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })
 
     const prompt = `
 You are an expert HR recruiter analyzing a resume for a job position.
@@ -254,7 +254,7 @@ export async function testGeminiConnection(): Promise<{
   error?: string
 }> {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })
     const result = await model.generateContent('Say "Hello World"')
     const response = await result.response
     const text = response.text()
