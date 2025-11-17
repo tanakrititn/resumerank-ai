@@ -23,6 +23,7 @@ interface ReAnalyzeButtonProps {
   variant?: 'default' | 'outline' | 'ghost' | 'link'
   size?: 'default' | 'sm' | 'lg' | 'icon'
   showIcon?: boolean
+  className?: string
 }
 
 export default function ReAnalyzeButton({
@@ -31,6 +32,7 @@ export default function ReAnalyzeButton({
   variant = 'outline',
   size = 'sm',
   showIcon = true,
+  className = '',
 }: ReAnalyzeButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -94,7 +96,7 @@ export default function ReAnalyzeButton({
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant={variant} size={size} disabled={isLoading}>
+        <Button variant={variant} size={size} disabled={isLoading} className={className}>
           {isLoading ? (
             <>
               <Loader2 className={showIcon ? 'mr-2 h-4 w-4 animate-spin' : 'h-4 w-4 animate-spin'} />

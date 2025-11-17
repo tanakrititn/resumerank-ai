@@ -4,12 +4,14 @@ interface ScoreGaugeProps {
   score: number
   size?: number
   strokeWidth?: number
+  className?: string
 }
 
 export default function ScoreGauge({
   score,
   size = 180,
   strokeWidth = 12,
+  className = '',
 }: ScoreGaugeProps) {
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
@@ -35,7 +37,7 @@ export default function ScoreGauge({
   const color = getColor(score)
 
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+    <div className={`relative inline-flex items-center justify-center ${className}`} style={{ width: size, height: size }}>
       {/* Background circle */}
       <svg
         width={size}
