@@ -4,6 +4,9 @@ import { uploadResumePublic } from '@/lib/utils/file-upload'
 import { env } from '@/lib/env'
 import { broadcastCandidateChange } from '@/lib/utils/realtime-broadcast'
 
+export const runtime = 'nodejs'
+export const maxDuration = 300 // 5 minutes for AI analysis
+
 export async function POST(request: NextRequest) {
   try {
     console.log('=== Public Application API Called ===')
@@ -173,133 +176,150 @@ export async function POST(request: NextRequest) {
 
     // Trigger AI analysis asynchronously using internal function call
     // This is more reliable than HTTP fetch and avoids URL/auth issues
-    try {
-      console.log('Triggering AI analysis for candidate:', candidate.id)
+    console.log('Triggering AI analysis for candidate:', candidate.id)
 
-      // Import and call the analysis function directly
-      Promise.resolve().then(async () => {
-        try {
-          const { analyzeResumeFile } = await import('@/lib/ai/gemini')
-          const { createClient: createServiceClient } = await import('@supabase/supabase-js')
-          const { broadcastCandidateChange } = await import('@/lib/utils/realtime-broadcast')
+    // Start async analysis but don't block the response
+    const analysisPromise = (async () => {
+      try {
+        console.log('Starting AI analysis import...')
+        const { analyzeResumeFile } = await import('@/lib/ai/gemini')
+        const { createClient: createServiceClient } = await import('@supabase/supabase-js')
+        const { broadcastCandidateChange } = await import('@/lib/utils/realtime-broadcast')
 
-          const supabaseService = createServiceClient(
-            env.NEXT_PUBLIC_SUPABASE_URL,
-            env.SUPABASE_SERVICE_ROLE_KEY
-          )
+        console.log('Creating Supabase service client...')
+        const supabaseService = createServiceClient(
+          env.NEXT_PUBLIC_SUPABASE_URL,
+          env.SUPABASE_SERVICE_ROLE_KEY
+        )
 
-          // Get candidate and job details
-          const { data: candidateData, error: candidateError } = await supabaseService
-            .from('candidates')
-            .select('*, jobs(*)')
-            .eq('id', candidate.id)
-            .single()
+        console.log('Fetching candidate and job details...')
+        // Get candidate and job details
+        const { data: candidateData, error: candidateError } = await supabaseService
+          .from('candidates')
+          .select('*, jobs(*)')
+          .eq('id', candidate.id)
+          .single()
 
-          if (candidateError || !candidateData) {
-            console.error('Failed to fetch candidate for analysis:', candidateError)
-            return
-          }
+        if (candidateError || !candidateData) {
+          console.error('Failed to fetch candidate for analysis:', candidateError)
+          return
+        }
 
-          const jobData = candidateData.jobs as any
-          if (!jobData || !jobData.description) {
-            console.error('Job description not found')
-            return
-          }
+        console.log('Candidate fetched, validating job data...')
+        const jobData = candidateData.jobs as any
+        if (!jobData || !jobData.description) {
+          console.error('Job description not found')
+          return
+        }
 
-          // Download resume file
-          const resumePath = candidateData.resume_url.split('/resumes/')[1]
-          if (!resumePath) {
-            console.error('Invalid resume URL')
-            return
-          }
+        console.log('Downloading resume file...')
+        // Download resume file
+        const resumePath = candidateData.resume_url.split('/resumes/')[1]
+        if (!resumePath) {
+          console.error('Invalid resume URL:', candidateData.resume_url)
+          return
+        }
 
-          const { data: fileData, error: downloadError } = await supabaseService.storage
-            .from('resumes')
-            .download(resumePath)
+        const { data: fileData, error: downloadError } = await supabaseService.storage
+          .from('resumes')
+          .download(resumePath)
 
-          if (downloadError || !fileData) {
-            console.error('Failed to download resume:', downloadError)
-            return
-          }
+        if (downloadError || !fileData) {
+          console.error('Failed to download resume:', downloadError)
+          return
+        }
 
-          // Convert blob to buffer
-          const arrayBuffer = await fileData.arrayBuffer()
-          const fileBuffer = Buffer.from(arrayBuffer)
+        console.log('Resume downloaded, converting to buffer...')
+        // Convert blob to buffer
+        const arrayBuffer = await fileData.arrayBuffer()
+        const fileBuffer = Buffer.from(arrayBuffer)
 
-          // Determine file type
-          const fileExt = resumePath.split('.').pop()?.toLowerCase()
-          const mimeType = fileExt === 'pdf'
-            ? 'application/pdf'
-            : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-          const fileName = resumePath.split('/').pop() || 'resume.pdf'
+        // Determine file type
+        const fileExt = resumePath.split('.').pop()?.toLowerCase()
+        const mimeType = fileExt === 'pdf'
+          ? 'application/pdf'
+          : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        const fileName = resumePath.split('/').pop() || 'resume.pdf'
 
-          // Build job description
-          const jobDescription = `
+        console.log(`Starting Gemini AI analysis for ${fileName} (${mimeType})...`)
+
+        // Build job description
+        const jobDescription = `
 Title: ${jobData.title}
 Description: ${jobData.description}
 ${jobData.requirements ? `Requirements: ${jobData.requirements}` : ''}
 ${jobData.location ? `Location: ${jobData.location}` : ''}
-          `.trim()
+        `.trim()
 
-          // Analyze resume
-          const { result, error: analysisError } = await analyzeResumeFile(
-            fileBuffer,
-            fileName,
-            mimeType,
-            jobDescription
-          )
+        // Analyze resume
+        const { result, error: analysisError } = await analyzeResumeFile(
+          fileBuffer,
+          fileName,
+          mimeType,
+          jobDescription
+        )
 
-          if (analysisError || !result) {
-            console.error('AI analysis failed:', analysisError)
-            return
-          }
-
-          // Update candidate with results
-          const { error: updateError } = await supabaseService
-            .from('candidates')
-            .update({
-              ai_score: result.score,
-              ai_summary: result.summary,
-              ai_strengths: result.strengths || [],
-              ai_weaknesses: result.weaknesses || [],
-              ai_recommendation: result.recommendation || null,
-              status: 'REVIEWED',
-            })
-            .eq('id', candidate.id)
-
-          if (updateError) {
-            console.error('Failed to save analysis results:', updateError)
-            return
-          }
-
-          // Broadcast update
-          await broadcastCandidateChange(supabaseService, candidateData.job_id, candidateData.user_id, {
-            action: 'update',
-            candidateId: candidate.id,
-            timestamp: new Date().toISOString(),
-          })
-
-          // Update quota
-          await supabaseService.rpc('increment_used_credits', { user_id: candidateData.user_id })
-
-          // Log activity
-          await supabaseService.from('activity_log').insert({
-            user_id: candidateData.user_id,
-            action: 'AI_ANALYSIS_COMPLETED',
-            resource_type: 'candidate',
-            resource_id: candidate.id,
-            metadata: { score: result.score, analysis: result },
-          })
-
-          console.log('AI analysis completed successfully for candidate:', candidate.id, 'Score:', result.score)
-        } catch (error) {
-          console.error('AI analysis internal error:', error)
+        if (analysisError || !result) {
+          console.error('AI analysis failed:', analysisError)
+          return
         }
-      }).catch((error) => {
-        console.error('Failed to start AI analysis:', error)
-      })
+
+        console.log('AI analysis completed! Score:', result.score)
+
+        // Update candidate with results
+        const { error: updateError } = await supabaseService
+          .from('candidates')
+          .update({
+            ai_score: result.score,
+            ai_summary: result.summary,
+            ai_strengths: result.strengths || [],
+            ai_weaknesses: result.weaknesses || [],
+            ai_recommendation: result.recommendation || null,
+            status: 'REVIEWED',
+          })
+          .eq('id', candidate.id)
+
+        if (updateError) {
+          console.error('Failed to save analysis results:', updateError)
+          return
+        }
+
+        console.log('Results saved to database')
+
+        // Broadcast update
+        await broadcastCandidateChange(supabaseService, candidateData.job_id, candidateData.user_id, {
+          action: 'update',
+          candidateId: candidate.id,
+          timestamp: new Date().toISOString(),
+        })
+
+        console.log('Real-time update broadcast')
+
+        // Update quota
+        await supabaseService.rpc('increment_used_credits', { user_id: candidateData.user_id })
+
+        // Log activity
+        await supabaseService.from('activity_log').insert({
+          user_id: candidateData.user_id,
+          action: 'AI_ANALYSIS_COMPLETED',
+          resource_type: 'candidate',
+          resource_id: candidate.id,
+          metadata: { score: result.score, analysis: result },
+        })
+
+        console.log('✅ AI analysis completed successfully for candidate:', candidate.id, 'Score:', result.score)
+      } catch (error) {
+        console.error('❌ AI analysis error:', error)
+        console.error('Error details:', error instanceof Error ? error.message : String(error))
+        console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+      }
+    })()
+
+    // Keep function alive to complete the analysis
+    try {
+      await analysisPromise
     } catch (error) {
-      console.error('Failed to setup AI analysis:', error)
+      console.error('Analysis promise error:', error)
     }
 
     return NextResponse.json({
