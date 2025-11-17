@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Card, CardContent } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -102,6 +103,187 @@ interface ComparisonDialogProps {
   onStatusChange?: (candidateId: string, status: string) => Promise<void>
 }
 
+interface CandidateDetailCardProps {
+  candidate: Candidate
+  status: typeof statusConfig[keyof typeof statusConfig]
+  StatusIcon: any
+  recConfig: typeof recommendationConfig[keyof typeof recommendationConfig] | null
+  strengths: string[]
+  weaknesses: string[]
+  updatingId: string | null
+  handleStatusChange: (candidateId: string, status: string) => Promise<void>
+  getScoreBackground: (score: number | null) => string
+  getScoreColor: (score: number | null) => string
+}
+
+function CandidateDetailCard({
+  candidate,
+  status,
+  StatusIcon,
+  recConfig,
+  strengths,
+  weaknesses,
+  updatingId,
+  handleStatusChange,
+  getScoreBackground,
+  getScoreColor,
+}: CandidateDetailCardProps) {
+  const RecIcon = recConfig?.icon
+
+  return (
+    <Card className="border-2 hover:border-primary/50 hover:shadow-xl transition-all overflow-hidden pt-0">
+      {/* Header with gradient background */}
+      <div className={`relative bg-gradient-to-r ${recConfig?.bgClass || 'from-gray-50 to-slate-50'} p-3 sm:p-4 border-b-2`}>
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 sm:gap-3 mb-3">
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-600 flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-lg flex-shrink-0">
+              {candidate.name[0].toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-base sm:text-lg truncate">{candidate.name}</h3>
+              {status && StatusIcon && (
+                <Badge className={`${status.className} inline-flex items-center gap-1 mt-1 text-xs`}>
+                  <StatusIcon className="h-3 w-3" />
+                  {status.label}
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full bg-white hover:bg-gray-50 text-xs sm:text-sm"
+                disabled={updatingId === candidate.id}
+              >
+                {updatingId === candidate.id ? (
+                  <>
+                    <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    Change Status
+                    <ChevronDown className="ml-2 h-3 w-3 sm:h-4 sm:w-4" />
+                  </>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="w-48">
+              {Object.entries(statusConfig).map(([key, config]) => (
+                <DropdownMenuItem
+                  key={key}
+                  onClick={() => handleStatusChange(candidate.id, key)}
+                >
+                  {config.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      <CardContent className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+        {/* Contact Info */}
+        <div className="space-y-1.5 sm:space-y-2">
+          <div className="flex items-start gap-2 text-xs sm:text-sm">
+            <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 mt-0.5 text-blue-600 flex-shrink-0" />
+            <span className="break-all text-muted-foreground">{candidate.email}</span>
+          </div>
+          {candidate.phone && (
+            <div className="flex items-center gap-2 text-xs sm:text-sm">
+              <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600 flex-shrink-0" />
+              <span className="text-muted-foreground">{candidate.phone}</span>
+            </div>
+          )}
+        </div>
+
+        {/* AI Summary */}
+        {candidate.ai_summary && (
+          <div className={`p-2.5 sm:p-3 rounded-lg bg-gradient-to-r ${getScoreBackground(candidate.ai_score)} border`}>
+            <div className="flex items-start gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+              <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 mt-0.5 text-purple-700 flex-shrink-0" />
+              <span className="text-xs font-bold text-purple-900 uppercase">AI Summary</span>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-800 leading-relaxed">
+              {candidate.ai_summary}
+            </p>
+          </div>
+        )}
+
+        {/* Strengths */}
+        {strengths.length > 0 && (
+          <div className="space-y-1.5 sm:space-y-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-green-700">
+              <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span>Strengths</span>
+            </div>
+            <ul className="space-y-1 sm:space-y-1.5">
+              {strengths.slice(0, 3).map((strength, idx) => (
+                <li key={idx} className="flex items-start gap-1.5 sm:gap-2 text-xs">
+                  <CheckCircle2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700 leading-relaxed">{strength}</span>
+                </li>
+              ))}
+              {strengths.length > 3 && (
+                <li className="text-xs text-muted-foreground pl-4 sm:pl-5">
+                  +{strengths.length - 3} more
+                </li>
+              )}
+            </ul>
+          </div>
+        )}
+
+        {/* Weaknesses */}
+        {weaknesses.length > 0 && (
+          <div className="space-y-1.5 sm:space-y-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-amber-700">
+              <TrendingDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span>Areas for Growth</span>
+            </div>
+            <ul className="space-y-1 sm:space-y-1.5">
+              {weaknesses.slice(0, 3).map((weakness, idx) => (
+                <li key={idx} className="flex items-start gap-1.5 sm:gap-2 text-xs">
+                  <AlertTriangle className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700 leading-relaxed">{weakness}</span>
+                </li>
+              ))}
+              {weaknesses.length > 3 && (
+                <li className="text-xs text-muted-foreground pl-4 sm:pl-5">
+                  +{weaknesses.length - 3} more
+                </li>
+              )}
+            </ul>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="pt-2 sm:pt-3 border-t space-y-1.5 sm:space-y-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground">
+            <Calendar className="h-3 w-3 flex-shrink-0" />
+            <span suppressHydrationWarning>
+              Applied {formatDistanceToNow(new Date(candidate.created_at), { addSuffix: true })}
+            </span>
+          </div>
+          {candidate.resume_url && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full hover:bg-blue-50 hover:border-blue-300 text-xs sm:text-sm"
+              onClick={() => window.open(candidate.resume_url!, '_blank', 'noopener,noreferrer')}
+            >
+              <Download className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+              Download Resume
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function ComparisonDialog({
   candidates,
   open,
@@ -155,39 +337,39 @@ export default function ComparisonDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto p-0 sm:p-6">
         {/* Gradient Header */}
-        <div className="relative overflow-hidden -mx-6 -mt-6 mb-6">
-          <div className="relative bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-600 p-6 text-white">
+        <div className="relative overflow-hidden mb-4 sm:mb-6 sm:-mx-6 sm:-mt-6">
+          <div className="relative bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-600 p-4 sm:p-6 text-white">
             <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2.5 rounded-xl bg-white/20 backdrop-blur-sm">
-                  <Scale className="h-6 w-6" />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-white/20 backdrop-blur-sm flex-shrink-0">
+                  <Scale className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                <div>
-                  <DialogTitle className="text-3xl font-bold">
+                <div className="min-w-0">
+                  <DialogTitle className="text-xl sm:text-2xl lg:text-3xl font-bold">
                     Candidate Comparison
                   </DialogTitle>
-                  <DialogDescription className="text-white/90 text-base mt-1">
-                    Compare {compareCandidates.length} candidates side-by-side with AI-powered insights
+                  <DialogDescription className="text-white/90 text-sm sm:text-base mt-0.5 sm:mt-1">
+                    Compare {compareCandidates.length} candidates with AI insights
                   </DialogDescription>
                 </div>
               </div>
             </div>
-            <div className="absolute -right-8 -bottom-8 h-40 w-40 rounded-full bg-white/10 blur-3xl"></div>
-            <div className="absolute -left-8 -top-8 h-40 w-40 rounded-full bg-white/10 blur-3xl"></div>
+            <div className="absolute -right-8 -bottom-8 h-32 w-32 sm:h-40 sm:w-40 rounded-full bg-white/10 blur-3xl"></div>
+            <div className="absolute -left-8 -top-8 h-32 w-32 sm:h-40 sm:w-40 rounded-full bg-white/10 blur-3xl"></div>
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6 px-4 sm:px-0">
           {/* AI Score & Recommendation Comparison */}
           <Card className="border-2 shadow-lg overflow-hidden p-0">
-            <div className="bg-gradient-to-r from-purple-50 via-blue-50 to-cyan-50 p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Trophy className="h-5 w-5 text-purple-600" />
-                <h3 className="font-bold text-lg">AI Analysis Overview</h3>
+            <div className="bg-gradient-to-r from-purple-50 via-blue-50 to-cyan-50 p-3 sm:p-5">
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 flex-shrink-0" />
+                <h3 className="font-bold text-base sm:text-lg">AI Analysis Overview</h3>
               </div>
-              <div className={`grid gap-4 ${compareCandidates.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {compareCandidates.map((candidate) => {
                   const isWinner = candidate.ai_score === bestScore && candidate.ai_score && bestScore > 0
                   const recommendation = (candidate as any).ai_recommendation as keyof typeof recommendationConfig | null
@@ -199,33 +381,34 @@ export default function ComparisonDialog({
                       key={candidate.id}
                       className={`relative overflow-hidden rounded-xl bg-white border-2 transition-all ${
                         isWinner
-                          ? 'border-green-500 shadow-xl scale-105 ring-2 ring-green-200'
+                          ? 'border-green-500 shadow-xl sm:scale-105 ring-2 ring-green-200'
                           : 'border-gray-200 hover:border-purple-300 hover:shadow-lg'
                       }`}
                     >
                       {isWinner && (
-                        <div className="absolute top-0 right-0">
-                          <div className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-bl-lg shadow-lg">
+                        <div className="absolute top-0 right-0 z-10">
+                          <div className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-bl-lg shadow-lg">
                             <div className="flex items-center gap-1 text-xs font-bold">
                               <Trophy className="h-3 w-3" />
-                              <span>Top Score</span>
+                              <span className="hidden sm:inline">Top Score</span>
+                              <span className="sm:hidden">Top</span>
                             </div>
                           </div>
                         </div>
                       )}
 
-                      <div className="p-5">
-                        <div className="text-center mb-4">
-                          <div className={`text-6xl font-bold mb-2 ${getScoreColor(candidate.ai_score)}`}>
+                      <div className="p-4 sm:p-5">
+                        <div className="text-center mb-3 sm:mb-4">
+                          <div className={`text-4xl sm:text-5xl lg:text-6xl font-bold mb-2 ${getScoreColor(candidate.ai_score)}`}>
                             {candidate.ai_score || '-'}
                           </div>
-                          <div className="text-sm font-semibold text-gray-900 mb-2">
+                          <div className="text-xs sm:text-sm font-semibold text-gray-900 mb-2 truncate px-2">
                             {candidate.name}
                           </div>
                           {candidate.ai_score ? (
                             <Progress
                               value={candidate.ai_score}
-                              className="h-3 rounded-full"
+                              className="h-2 sm:h-3 rounded-full"
                             />
                           ) : (
                             <div className="text-xs text-muted-foreground">No score yet</div>
@@ -233,9 +416,9 @@ export default function ComparisonDialog({
                         </div>
 
                         {recConfig && RecIcon && (
-                          <Badge className={`${recConfig.className} w-full justify-center py-2 font-semibold shadow-sm`}>
-                            <RecIcon className="h-4 w-4 mr-1.5" />
-                            {recConfig.label}
+                          <Badge className={`${recConfig.className} w-full justify-center py-1.5 sm:py-2 text-xs sm:text-sm font-semibold shadow-sm`}>
+                            <RecIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-1.5" />
+                            <span className="truncate">{recConfig.label}</span>
                           </Badge>
                         )}
                       </div>
@@ -246,22 +429,23 @@ export default function ComparisonDialog({
             </div>
           </Card>
 
-          {/* Quick Comparison Table */}
+          {/* Quick Comparison - Desktop Table / Mobile Cards */}
           <Card className="border-2 shadow-lg pt-0">
-            <div className="bg-gradient-to-r from-slate-50 to-gray-50 p-4 border-b">
+            <div className="bg-gradient-to-r from-slate-50 to-gray-50 p-3 sm:p-4 border-b">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-blue-600" />
-                <h3 className="font-bold text-lg">Quick Comparison</h3>
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
+                <h3 className="font-bold text-base sm:text-lg">Quick Comparison</h3>
               </div>
             </div>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
+              {/* Desktop: Table View */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b-2">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Attribute</th>
                       {compareCandidates.map((candidate) => (
-                        <th key={candidate.id} className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">
+                        <th key={candidate.id} className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase truncate max-w-[150px]">
                           {candidate.name}
                         </th>
                       ))}
@@ -285,7 +469,7 @@ export default function ComparisonDialog({
                         const StatusIcon = status?.icon
                         return (
                           <td key={candidate.id} className="px-4 py-3 text-center">
-                            <Badge className={`${status?.className || ''} inline-flex items-center gap-1`}>
+                            <Badge className={`${status?.className || ''} inline-flex items-center gap-1 text-xs`}>
                               {StatusIcon && <StatusIcon className="h-3 w-3" />}
                               {status?.label || candidate.status}
                             </Badge>
@@ -304,15 +488,15 @@ export default function ComparisonDialog({
                     <tr className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm font-medium text-gray-700">Contact</td>
                       {compareCandidates.map((candidate) => (
-                        <td key={candidate.id} className="px-4 py-3 text-center">
-                          <div className="text-xs space-y-1">
+                        <td key={candidate.id} className="px-4 py-3">
+                          <div className="text-xs space-y-1 max-w-[200px] mx-auto">
                             <div className="flex items-center justify-center gap-1">
-                              <Mail className="h-3 w-3 text-muted-foreground" />
-                              <span className="truncate max-w-[150px]">{candidate.email}</span>
+                              <Mail className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                              <span className="truncate">{candidate.email}</span>
                             </div>
                             {candidate.phone && (
                               <div className="flex items-center justify-center gap-1">
-                                <Phone className="h-3 w-3 text-muted-foreground" />
+                                <Phone className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                                 <span>{candidate.phone}</span>
                               </div>
                             )}
@@ -323,18 +507,111 @@ export default function ComparisonDialog({
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile: Card View */}
+              <div className="md:hidden divide-y">
+                {compareCandidates.map((candidate) => {
+                  const status = statusConfig[candidate.status as keyof typeof statusConfig]
+                  const StatusIcon = status?.icon
+
+                  return (
+                    <div key={candidate.id} className="p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-semibold text-sm">{candidate.name}</h4>
+                        <span className={`text-2xl font-bold ${getScoreColor(candidate.ai_score)}`}>
+                          {candidate.ai_score || '-'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">Status:</span>
+                        <Badge className={`${status?.className || ''} inline-flex items-center gap-1 text-xs`}>
+                          {StatusIcon && <StatusIcon className="h-3 w-3" />}
+                          {status?.label || candidate.status}
+                        </Badge>
+                      </div>
+
+                      <div className="space-y-1.5 text-xs">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                          <span className="truncate">{candidate.email}</span>
+                        </div>
+                        {candidate.phone && (
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                            <span>{candidate.phone}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 text-muted-foreground" suppressHydrationWarning>
+                          <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span>Applied {formatDistanceToNow(new Date(candidate.created_at), { addSuffix: true })}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </CardContent>
           </Card>
 
-          {/* Detailed Comparison Cards */}
-          <div className={`grid gap-4 ${compareCandidates.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          {/* Detailed Comparison - Mobile: Tabs, Desktop: Grid */}
+          {/* Mobile: Tabs */}
+          <div className="md:hidden">
+            <Tabs defaultValue={compareCandidates[0]?.id} className="w-full">
+              <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${compareCandidates.length}, 1fr)` }}>
+                {compareCandidates.map((candidate, index) => (
+                  <TabsTrigger key={candidate.id} value={candidate.id} className="text-xs sm:text-sm truncate">
+                    {candidate.name.split(' ')[0]}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              {compareCandidates.map((candidate) => {
+                const status = statusConfig[candidate.status as keyof typeof statusConfig]
+                const StatusIcon = status?.icon
+                const recommendation = (candidate as any).ai_recommendation as keyof typeof recommendationConfig | null
+                const recConfig = recommendation ? recommendationConfig[recommendation] : null
+
+                let strengths: string[] = []
+                let weaknesses: string[] = []
+                try {
+                  strengths = (candidate as any).ai_strengths ? JSON.parse((candidate as any).ai_strengths) : []
+                } catch {
+                  strengths = []
+                }
+                try {
+                  weaknesses = (candidate as any).ai_weaknesses ? JSON.parse((candidate as any).ai_weaknesses) : []
+                } catch {
+                  weaknesses = []
+                }
+
+                return (
+                  <TabsContent key={candidate.id} value={candidate.id} className="mt-3">
+                    <CandidateDetailCard
+                      candidate={candidate}
+                      status={status}
+                      StatusIcon={StatusIcon}
+                      recConfig={recConfig}
+                      strengths={strengths}
+                      weaknesses={weaknesses}
+                      updatingId={updatingId}
+                      handleStatusChange={handleStatusChange}
+                      getScoreBackground={getScoreBackground}
+                      getScoreColor={getScoreColor}
+                    />
+                  </TabsContent>
+                )
+              })}
+            </Tabs>
+          </div>
+
+          {/* Desktop: Grid */}
+          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {compareCandidates.map((candidate) => {
               const status = statusConfig[candidate.status as keyof typeof statusConfig]
               const StatusIcon = status?.icon
               const recommendation = (candidate as any).ai_recommendation as keyof typeof recommendationConfig | null
               const recConfig = recommendation ? recommendationConfig[recommendation] : null
 
-              // Parse strengths and weaknesses if they're JSON strings
               let strengths: string[] = []
               let weaknesses: string[] = []
               try {
@@ -349,159 +626,19 @@ export default function ComparisonDialog({
               }
 
               return (
-                <Card
+                <CandidateDetailCard
                   key={candidate.id}
-                  className="border-2 hover:border-primary/50 hover:shadow-xl transition-all overflow-hidden pt-0"
-                >
-                  {/* Header with gradient background */}
-                  <div className={`relative bg-gradient-to-r ${recConfig?.bgClass || 'from-gray-50 to-slate-50'} p-4 border-b-2`}>
-                    <div className="relative z-10">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                          {candidate.name[0].toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-lg truncate">{candidate.name}</h3>
-                          {status && StatusIcon && (
-                            <Badge className={`${status.className} inline-flex items-center gap-1 mt-1`}>
-                              <StatusIcon className="h-3 w-3" />
-                              {status.label}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full bg-white hover:bg-gray-50"
-                            disabled={updatingId === candidate.id}
-                          >
-                            {updatingId === candidate.id ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Updating...
-                              </>
-                            ) : (
-                              <>
-                                Change Status
-                                <ChevronDown className="ml-2 h-4 w-4" />
-                              </>
-                            )}
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="center" className="w-48">
-                          {Object.entries(statusConfig).map(([key, config]) => (
-                            <DropdownMenuItem
-                              key={key}
-                              onClick={() => handleStatusChange(candidate.id, key)}
-                            >
-                              {config.label}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-
-                  <CardContent className="p-4 space-y-4">
-                    {/* Contact Info */}
-                    <div className="space-y-2">
-                      <div className="flex items-start gap-2 text-sm">
-                        <Mail className="h-4 w-4 mt-0.5 text-blue-600 flex-shrink-0" />
-                        <span className="break-all text-muted-foreground">{candidate.email}</span>
-                      </div>
-                      {candidate.phone && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Phone className="h-4 w-4 text-green-600 flex-shrink-0" />
-                          <span className="text-muted-foreground">{candidate.phone}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* AI Summary */}
-                    {candidate.ai_summary && (
-                      <div className={`p-3 rounded-lg bg-gradient-to-r ${getScoreBackground(candidate.ai_score)} border`}>
-                        <div className="flex items-start gap-2 mb-2">
-                          <FileText className="h-4 w-4 mt-0.5 text-purple-700 flex-shrink-0" />
-                          <span className="text-xs font-bold text-purple-900 uppercase">AI Summary</span>
-                        </div>
-                        <p className="text-sm text-gray-800 leading-relaxed">
-                          {candidate.ai_summary}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Strengths */}
-                    {strengths.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm font-bold text-green-700">
-                          <TrendingUp className="h-4 w-4" />
-                          <span>Strengths</span>
-                        </div>
-                        <ul className="space-y-1.5">
-                          {strengths.slice(0, 3).map((strength, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-xs">
-                              <CheckCircle2 className="h-3.5 w-3.5 text-green-600 flex-shrink-0 mt-0.5" />
-                              <span className="text-gray-700 leading-relaxed">{strength}</span>
-                            </li>
-                          ))}
-                          {strengths.length > 3 && (
-                            <li className="text-xs text-muted-foreground pl-5">
-                              +{strengths.length - 3} more
-                            </li>
-                          )}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Weaknesses */}
-                    {weaknesses.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm font-bold text-amber-700">
-                          <TrendingDown className="h-4 w-4" />
-                          <span>Areas for Growth</span>
-                        </div>
-                        <ul className="space-y-1.5">
-                          {weaknesses.slice(0, 3).map((weakness, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-xs">
-                              <AlertTriangle className="h-3.5 w-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
-                              <span className="text-gray-700 leading-relaxed">{weakness}</span>
-                            </li>
-                          ))}
-                          {weaknesses.length > 3 && (
-                            <li className="text-xs text-muted-foreground pl-5">
-                              +{weaknesses.length - 3} more
-                            </li>
-                          )}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="pt-3 border-t space-y-2">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        <span suppressHydrationWarning>
-                          Applied {formatDistanceToNow(new Date(candidate.created_at), { addSuffix: true })}
-                        </span>
-                      </div>
-                      {candidate.resume_url && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full hover:bg-blue-50 hover:border-blue-300"
-                          onClick={() => window.open(candidate.resume_url!, '_blank', 'noopener,noreferrer')}
-                        >
-                          <Download className="mr-2 h-4 w-4" />
-                          Download Resume
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                  candidate={candidate}
+                  status={status}
+                  StatusIcon={StatusIcon}
+                  recConfig={recConfig}
+                  strengths={strengths}
+                  weaknesses={weaknesses}
+                  updatingId={updatingId}
+                  handleStatusChange={handleStatusChange}
+                  getScoreBackground={getScoreBackground}
+                  getScoreColor={getScoreColor}
+                />
               )
             })}
           </div>
