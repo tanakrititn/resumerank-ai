@@ -337,9 +337,9 @@ export default function ComparisonDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto p-0 sm:p-6">
+      <DialogContent className="max-w-[95vw] sm:max-w-[90vw] lg:max-w-[85vw] xl:max-w-[1600px] max-h-[90vh] overflow-y-auto p-0 sm:p-6 [&>button]:z-50 [&>button]:bg-white/90 [&>button]:backdrop-blur-sm [&>button]:hover:bg-white [&>button]:rounded-full [&>button]:p-1.5 [&>button]:shadow-lg">
         {/* Gradient Header */}
-        <div className="relative overflow-hidden mb-4 sm:mb-6 sm:-mx-6 sm:-mt-6">
+        <div className="relative overflow-hidden mb-4 sm:mb-6 sm:-mx-6 sm:-mt-6 pt-12 sm:pt-0">
           <div className="relative bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-600 p-4 sm:p-6 text-white">
             <div className="relative z-10">
               <div className="flex items-center gap-2 sm:gap-3">
