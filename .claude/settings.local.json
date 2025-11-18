@@ -24,9 +24,7 @@
       "Bash(node test-realtime-connection.js:*)",
       "Bash(psql:*)",
       "Bash(git check-ignore:*)",
-      "Bash(npm uninstall:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(npm uninstall:*)"
     ],
     "deny": [],
     "ask": []
